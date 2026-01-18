@@ -70,7 +70,6 @@ Every action is auditable, replayable, permission-scoped, and reversible.
 
 ## High-Level Architecture
 
-```mermaid
 graph TD
     subgraph Client_Layer [Client Layer]
         A[Tenant App / Portal]
