@@ -1,47 +1,51 @@
-Good catch — you’re right 👍
-I **missed an explicit “Project Identity / Problem Statement + Scope boundary” section**, which is something Staff reviewers *do* look for. I also didn’t clearly separate **what PropFlow does vs what it explicitly does NOT automate** early enough.
-
-Below is a **corrected and improved README.md**, still Staff-engineer tone, but tighter, clearer, and more review-ready.
-
-You can replace your README with this version.
-
----
-
-```md
 # PropFlow
 
 **Autonomous Property Maintenance Orchestration Engine**
 
 ---
 
-## Project Identity
+## Project Identity & Scope
 
-**PropFlow** is a workflow-first, agentic AI system designed to automate the triage, decision-making, and dispatch of property maintenance requests in large-scale property management environments.
+**PropFlow** is a workflow-first, agentic AI system designed to orchestrate the triage, decision-making, and execution of property maintenance requests in large-scale property management environments.
 
-**Mission**  
-To bridge the gap between tenant distress and vendor resolution by orchestrating intelligent, auditable, and resilient maintenance workflows using agentic AI and secure browser automation.
+### Mission
 
-PropFlow is intentionally designed for **enterprise property management platforms** where:
-- Volume is high
-- Legacy systems are unavoidable
-- Safety, cost control, and auditability are mandatory
+To bridge the gap between tenant-reported issues and vendor resolution by orchestrating **intelligent, auditable, and resilient maintenance workflows** using agentic AI and secure browser automation.
+
+### Intended Environment
+
+PropFlow is explicitly designed for **enterprise property management platforms** where:
+
+- Maintenance request volume is high
+- Legacy vendor systems are unavoidable
+- Cost controls and safety guarantees are mandatory
+- Human operators must retain final authority
+- Auditability and compliance are non-negotiable
+
+PropFlow is **not** a consumer chatbot, ticketing system, or fully autonomous agent.
 
 ---
 
 ## Problem Statement
 
-Property management organizations handle thousands of maintenance requests daily.  
-Most requests require manual effort to:
+Property management organizations process thousands of maintenance requests daily.  
+Each request typically requires manual effort to:
 
 - Interpret tenant-reported issues
-- Assess urgency and safety
-- Look up lease, warranty, and maintenance history
-- Select and schedule appropriate vendors
-- Recover from failures in legacy vendor portals
+- Assess urgency and safety risk
+- Consult lease agreements and warranty terms
+- Review maintenance and incident history
+- Select compliant vendors within cost limits
+- Recover from failures in brittle vendor portals
 
-This process is slow, costly, and error-prone.
+This workflow is slow, expensive, and error-prone because it relies on **human glue logic** across disconnected systems.
 
-**PropFlow addresses this by modeling maintenance as a deterministic workflow**, where AI assists with reasoning and context—but never bypasses operational safeguards.
+### Core Insight
+
+Maintenance resolution is **not a conversational problem**.  
+It is a **stateful, safety-critical workflow orchestration problem**.
+
+PropFlow models maintenance as a **deterministic state machine**, where AI assists with reasoning and context — but never bypasses operational safeguards.
 
 ---
 
@@ -49,209 +53,75 @@ This process is slow, costly, and error-prone.
 
 PropFlow is built on the following principles:
 
-- **Workflow-first, not chat-first**  
-  Maintenance is a state machine, not a conversation.
+### 1. Workflow-First, Not Chat-First
+Maintenance resolution is a state machine, not an LLM conversation.
 
-- **AI reasons, systems decide**  
-  LLMs generate insights; deterministic logic governs execution.
+### 2. AI Reasons, Systems Decide
+LLMs generate insights and recommendations.  
+Deterministic logic governs execution.
 
-- **Safety over autonomy**  
-  Emergencies and low-confidence situations always trigger human intervention.
+### 3. Safety Over Autonomy
+Emergencies, ambiguity, and high-cost scenarios always escalate to humans.
 
-- **Enterprise operability by default**  
-  Every action is auditable, replayable, and permission-scoped.
+### 4. Enterprise Operability by Default
+Every action is auditable, replayable, permission-scoped, and reversible.
 
 ---
 
 ## High-Level Architecture
 
-```
+```mermaid
+graph TD
+    subgraph Client_Layer [Client Layer]
+        A[Tenant App / Portal]
+    end
 
-Tenant App / Portal
-│
-▼
-API Gateway (AuthN/AuthZ, Rate Limits)
-│
-▼
-LangGraph Workflow Engine
-│
-├── Triage Agent (LLM)
-├── Knowledge Agent (RAG)
-├── Execution Agent (Playwright)
-├── Human Ops Console
-│
-▼
-Immutable Audit & Compliance Store
+    subgraph Infrastructure [Infrastructure & Security]
+        B[API Gateway]
+        B1[Authentication / Authorization]
+        B2[Rate Limiting]
+        B --> B1
+        B --> B2
+    end
 
-```
+    subgraph Core_Engine [LangGraph Workflow Engine]
+        direction TB
+        C{Workflow Coordinator}
+        D[Triage Agent]
+        E[Knowledge Agent]
+        F[Execution Agent]
+        G[Human Operations Console]
 
-AI components operate **inside** the workflow engine — not as standalone services.
+        C --> D
+        D -- Safe --> E
+        E -- Professional --> F
+        D -- Emergency --> G
+        F --> C
+    end
 
----
+    subgraph Persistence [Data & Compliance]
+        H[(Immutable Audit Log)]
+    end
 
-## Core Agents
+    A --> B --> C
+    C -. State Transitions .-> H
+    F -. Execution Trace .-> H
+    
+flowchart TD
+    Start((Tenant Issue)) --> Triage{Triage}
 
-### 1. Triage Agent (Tenant-Facing)
+    Triage -- Emergency --> Human[Human Override]
+    Human --> End((End))
 
-**Responsibilities**
-- Conversational intake of tenant issues
-- Structured extraction (issue type, location, severity)
-- Emergency detection
-- Clarification loops when confidence is insufficient
+    Triage -- Needs Clarification --> Clarify[Clarification Loop]
+    Clarify --> Triage
 
-**Constraints**
-- Cannot execute actions
-- Cannot schedule vendors
-- Emergency classification is rule-enforced, not probabilistic
+    Triage -- Safe --> Knowledge{Knowledge}
 
----
+    Knowledge -- Self-Resolvable --> SelfHelp[Self-Help Guidance]
+    SelfHelp --> Wait[Wait & Observe]
+    Wait --> Triage
 
-### 2. Knowledge Agent (Context & Reasoning)
-
-**Responsibilities**
-- Retrieval-augmented reasoning over:
-  - Lease agreements
-  - Appliance warranties
-  - Maintenance history
-  - Vendor performance data
-- Recommend corrective actions
-- Define cost ceilings and vendor eligibility
-
-**Constraints**
-- Advisory only
-- No system-side effects
-
----
-
-### 3. Execution Agent (Deterministic Automation)
-
-**Responsibilities**
-- Securely automate legacy vendor portals using Playwright
-- Enforce vendor ratings, cost caps, and retry policies
-- Execute as a checkpointed, resumable state machine
-
-**Constraints**
-- No LLM usage
-- No autonomous decision-making
-- Executes only when explicitly authorized by workflow state
-
----
-
-## Workflow Orchestration
-
-PropFlow uses **LangGraph** to model maintenance as a cyclic, state-driven DAG:
-
-```
-
-TRIAGE
-├── Emergency → HUMAN OVERRIDE → END
-├── Needs Clarification → TRIAGE
-└── Safe → KNOWLEDGE
-├── Self-Help → WAIT → TRIAGE
-└── Vendor Required → EXECUTION → CONFIRMATION → END
-
-```
-
-This structure enables:
-- Clarification loops
-- Safe retries
-- Deferred execution
-- Human-in-the-loop escalation
-
----
-
-## Failure Recovery Model
-
-Failure is treated as a first-class concern.
-
-- **Transient failures** → Retry with backoff
-- **Portal downtime** → Deferred execution queue
-- **Partial success** → State reconciliation before retry
-- **Automation crashes** → Resume from last successful step
-
-Execution is decomposed into atomic, idempotent steps to prevent duplicate bookings or inconsistent state.
-
----
-
-## Security & Compliance
-
-PropFlow is designed to align with **SOC2-style enterprise requirements**:
-
-- OAuth2 / SAML authentication
-- Role-based and attribute-based authorization (RBAC + ABAC)
-- Strict tenant and property data isolation
-- Immutable, append-only audit logs
-- Versioned prompts and model governance
-- Secrets managed via vaults (never exposed to LLMs)
-
-Each workflow transition is logged with:
-- Actor identity
-- Action performed
-- Before/after state hashes
-- Model and prompt version (if applicable)
-
----
-
-## Human-in-the-Loop Controls
-
-Human operators are invoked when:
-
-- An emergency is detected
-- Confidence falls below SLA thresholds
-- Costs exceed authorization limits
-- Automation encounters systemic failure
-
-Humans **resume** workflows from preserved state rather than restarting them.
-
----
-
-## Observability & Evaluation
-
-- State-based workflows enable full replay and forensic analysis
-- Golden datasets are used to evaluate triage accuracy pre-deployment
-- Emergency recall is prioritized over precision
-- Metrics tracked:
-  - Time-to-resolution
-  - Cost avoidance
-  - Escalation rate
-  - Automation success rate
-
----
-
-## Technology Stack
-
-- **Workflow Orchestration:** LangGraph
-- **LLM Reasoning:** OpenAI-compatible APIs
-- **Retrieval:** Vector database (tenant-scoped)
-- **Automation:** Playwright (containerized, isolated)
-- **Secrets Management:** Vault / KMS
-- **Audit Logs:** Append-only object storage
-- **Infrastructure:** Kubernetes-based execution environment
-
----
-
-## Explicit Non-Goals
-
-PropFlow intentionally does **not** attempt to:
-
-- Fully automate emergency response
-- Allow LLMs direct access to production systems
-- Replace human property managers
-- Bypass compliance or authorization controls
-
----
-
-## Project Status
-
-PropFlow is a **reference architecture and implementation blueprint** demonstrating Staff-level system design for agentic AI in regulated enterprise environments.
-
----
-
-## Author’s Note
-
-PropFlow reflects a core belief:  
-The future of enterprise AI is not autonomy without oversight, but **orchestration with accountability**.
-```
-
----
-
+    Knowledge -- Professional Required --> Execute[Execution]
+    Execute --> Confirm[Confirmation]
+    Confirm --> End
