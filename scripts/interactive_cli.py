@@ -18,10 +18,11 @@ def run_interactive_session():
     thread_id = f"interactive-{uuid.uuid4().hex[:6]}"
     config = {"configurable": {"thread_id": thread_id}}
     
-    # Set dummy key for demo if not present
-    if "OPENAI_API_KEY" not in os.environ:
-        os.environ["OPENAI_API_KEY"] = "sk-dummy-key"
-        print("(Using dummy OpenAI Key for mock mode)")
+    # Check for API key
+    if "GOOGLE_API_KEY" not in os.environ:
+        print("\n[WARNING] GOOGLE_API_KEY not found in environment variables.")
+        print("Please set it before sending a message, or the agent will crash.")
+        print("Example: $env:GOOGLE_API_KEY='AIza...'")
 
     print(f"\nSession ID: {thread_id}")
 

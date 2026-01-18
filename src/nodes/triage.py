@@ -1,9 +1,7 @@
 from typing import Literal, Optional
 from langchain_core.messages import SystemMessage, HumanMessage
 from pydantic import BaseModel, Field
-from langchain_openai import ChatOpenAI 
-# In a real scenario, we might use:
-# from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 from src.state import PropFlowState
 
@@ -45,9 +43,9 @@ def triage_node(state: PropFlowState):
     messages = state['messages']
     
     # Initialize LLM (Mocked or Real)
-    # NOTE: In production, ensure OPENAI_API_KEY is set.
+    # NOTE: In production, ensure GOOGLE_API_KEY is set.
     # We use structured output to ensure strict adherence to the schema.
-    llm = ChatOpenAI(model="gpt-4o", temperature=0)
+    llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro", temperature=0)
     structured_llm = llm.with_structured_output(TriageOutput)
     
     # Construct the prompt
@@ -57,19 +55,10 @@ def triage_node(state: PropFlowState):
     # Invoke
     # In a real run, we would need the API key. 
     # For now, if this fails due to missing key, we might need a fallback mock for the user to run locally.
-    try:
-        response: TriageOutput = chain.invoke([SystemMessage(content=TRIAGE_SYSTEM_PROMPT)] + messages)
-    except Exception as e:
-        # Fallback for demo purposes if no API key is present
-        print(f"LLM call failed (likely no API key): {e}. Using mock response.")
-        # Simple keyword fallback
-        last_msg = messages[-1].content.lower()
-        if "fire" in last_msg or "flood" in last_msg:
-            response = TriageOutput(classification="emergency", urgency_score=10, maintenance_category="general", reasoning="Mock emergency detection")
-        elif "broken" in last_msg and len(last_msg) < 15:
-            response = TriageOutput(classification="clarification_needed", urgency_score=1, reasoning="Mock vague detection")
-        else:
-            response = TriageOutput(classification="routine", urgency_score=3, maintenance_category="general", reasoning="Mock routine detection")
+    # Invoke
+    # The user has confirmed they will provide the API key.
+    # We let the exception bubble up if the key is missing/invalid so the user knows to fix it.
+    response: TriageOutput = chain.invoke([SystemMessage(content=TRIAGE_SYSTEM_PROMPT)] + messages)
 
     return {
         "classification": response.classification,

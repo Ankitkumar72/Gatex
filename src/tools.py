@@ -1,7 +1,12 @@
-import random
-from typing import List, Dict, Union
+import os
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_core.tools import tool
+from typing import List, Dict, Union
 from src.state import Vendor
+from src.tiny_vector_store import TinyVectorStore
+
+# Initialize Vector Store (Lazy load or global)
+DB_PATH = os.path.join(os.path.dirname(__file__), "..", "propflow_knowledge.json")
 
 @tool
 def search_lease_rag(query: str) -> str:
@@ -9,23 +14,31 @@ def search_lease_rag(query: str) -> str:
     Searches the lease and warranty documents for policy information.
     Useful for determining tenant vs landlord responsibility.
     """
-    # Mock knowledge base
-    knowledge_base = {
-        "lightbulb": "Lease Clause 4.2: Tenant is responsible for replacing consumable items including lightbulbs and smoke detector batteries.",
-        "faucet": "Lease Clause 5.1: Landlord is responsible for all plumbing fixtures unless damage is caused by Tenant negligence.",
-        "leak": "Lease Clause 5.1: Landlord is responsible for all plumbing fixtures unless damage is caused by Tenant negligence. Emergency contact required if flooding.",
-        "fire": "Emergency Policy: In case of fire, call 911 immediately. Landlord responsible for structural repairs after safety is ensured.",
-        "lawn": "Lease Clause 8.0: Tenant is responsible for general lawn maintenance (mowing/watering). Landlord covers tree trimming.",
-        "filter": "Warranty Doc: HVAC filters must be changed every 3 months. Tenant responsibility."
-    }
-    
-    # Simple keyword matching for mock
-    query_lower = query.lower()
-    for key, value in knowledge_base.items():
-        if key in query_lower:
-            return value
-    
-    return "No specific policy found in lease documents for this issue. Default to Landlord responsibility for structural/maintenance issues."
+    if "GOOGLE_API_KEY" not in os.environ:
+        return "Error: GOOGLE_API_KEY not set. Cannot query Vector DB."
+
+    try:
+        # Load Store
+        vector_store = TinyVectorStore(persist_path=DB_PATH)
+        if not vector_store.documents:
+            return "Knowledge base is empty. Please run scripts/ingest.py first."
+
+        # Get Query Embedding
+        embeddings = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004")
+        q_vec = embeddings.embed_query(query)
+        
+        # Search for top 2 relevant chunks
+        results = vector_store.similarity_search(q_vec, k=2)
+        
+        if not results:
+            return "No specific policy found in lease documents."
+            
+        # Format context
+        context_str = "\n---\n".join(results)
+        return f"Policy Information from Lease:\n{context_str}"
+        
+    except Exception as e:
+        return f"Error querying knowledge base: {e}"
 
 @tool
 def vendor_database_query(category: str) -> List[Vendor]:

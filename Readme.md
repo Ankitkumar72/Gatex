@@ -1,126 +1,84 @@
-# PropFlow
+# PropFlow: AI Agent for Property Maintenance
 
-**Autonomous Property Maintenance Orchestration Engine**
+PropFlow is an intelligent, autonomous agent system designed to triage, troubleshoot, and dispatch vendors for property maintenance requests. Built with **LangGraph**, it serves as a stateful orchestration engine that manages the entire lifecycle of a maintenance ticket—from the initial tenant SMS to the final vendor dispatch—while keeping a human in the loop for critical financial decisions.
 
----
+## 🚀 Key Features
 
-## Project Identity & Scope
+*   **Stateful Orchestration**: Remembers conversation context and status across long wait times (e.g., waiting 4 hours for a tenant reply) using SQLite persistence.
+*   **Intelligent Triage**: Uses **Google Gemini 1.5 Pro** to analyze the urgency ("Emergency" vs. "Routine") and safety risks of every request.
+*   **Human-in-the-Loop (HITL)**: "Dead Man's Switch" architecture ensures no vendor is dispatched (and no money spent) without explicit property manager approval.
+*   **RAG-Ready Architecture**: "Knowledge Agent" node designed to look up Lease and Warranty policies (currently mocked, ready for Vector DB).
+*   **Clean Architecture**: Separation of concerns into Schema (`state.py`), Agents (`nodes/`), and Routing (`graph.py`).
 
-**PropFlow** is a workflow-first, agentic AI system designed to orchestrate the triage, decision-making, and execution of property maintenance requests in large-scale property management environments.
+## 🛠️ Tech Stack
 
-### Mission
+*   **Framework**: LangGraph, LangChain
+*   **LLM**: Google Gemini 1.5 Pro
+*   **Embeddings**: Google Gemini `text-embedding-004`
+*   **Vector Store**: TinyVectorStore (Custom JSON-based for MVP)
+*   **Validation**: Pydantic (Structured Output)
+*   **Persistence**: SQLite (SqliteSaver)
+*   **Runtime**: Python 3.10+
 
-To bridge the gap between tenant-reported issues and vendor resolution by orchestrating **intelligent, auditable, and resilient maintenance workflows** using agentic AI and secure browser automation.
+## 📂 Project Structure
 
-### Intended Environment
+```
+d:/PropFlow/
+├── src/
+│   ├── graph.py       # Main Application (Routing Logic & Conditional Edges)
+│   ├── state.py       # PropFlowState Schema (TypedDict)
+│   ├── nodes/         # The "Brains" of the operation
+│   │   ├── triage.py     # Gatekeeper (Emergency vs Routine)
+│   │   ├── knowledge.py  # Researcher (Lease/Policy checker)
+│   │   └── execution.py  # Coordinator (Vendor matchmaking)
+│   └── tools.py       # Interface for external APIs (Mocked for MVP)
+├── scripts/
+│   ├── interactive_cli.py    # Chat with the agent in your terminal
+│   ├── simulate_flow.py      # Run pre-canned scenarios
+│   └── verify_persistence.py # functionality tests
+├── propflow.db        # Local SQLite database for state persistence
+└── requirements.txt   # Python dependencies
+```
 
-PropFlow is explicitly designed for **enterprise property management platforms** where:
+## ⚡ Quick Start
 
-- Maintenance request volume is high
-- Legacy vendor systems are unavoidable
-- Cost controls and safety guarantees are mandatory
-- Human operators must retain final authority
-- Auditability and compliance are non-negotiable
+### 1. Prerequisites
+Ensure you have Python installed. Install dependencies:
+```bash
+pip install langgraph langchain langchain-google-genai langchain-core pydantic langgraph-checkpoint-sqlite
+```
 
-PropFlow is **not** a consumer chatbot, ticketing system, or fully autonomous agent.
+### 2. Configure Environment
+Set your Google API Key (required for the Triage agent):
+```powershell
+$env:GOOGLE_API_KEY="AIza-your-key-here"
+```
 
----
+### 3. Run the Agent
+Start the interactive CLI to chat with PropFlow:
+```bash
+python scripts/interactive_cli.py
+```
 
-## Problem Statement
+### 4. Verification
+Run the unit tests to verify the logic (uses mocks, safe to run without costs):
+```bash
+python scripts/test_real_llm_mock.py
+```
 
-Property management organizations process thousands of maintenance requests daily.  
-Each request typically requires manual effort to:
+## 🧠 Workflow Logic
 
-- Interpret tenant-reported issues
-- Assess urgency and safety risk
-- Consult lease agreements and warranty terms
-- Review maintenance and incident history
-- Select compliant vendors within cost limits
-- Recover from failures in brittle vendor portals
+1.  **Input**: Tenant says "My kitchen tap is leaking."
+2.  **Triage Node**: Classifies as `Routine` / `Plumbing`.
+3.  **Knowledge Node**: Checks Lease. Result: "Landlord Responsibility".
+4.  **Execution Node**: Finds "Joe's Plumbing" (Available). Drafts Work Order.
+5.  **Human Approval**: graph **PAUSES**.
+6.  **Action**: Manager types `approve`.
+7.  **Dispatch**: System sends email/SMS to vendor.
 
-This workflow is slow, expensive, and error-prone because it relies on **human glue logic** across disconnected systems.
+## 🗺️ Roadmap
 
-### Core Insight
-
-Maintenance resolution is **not a conversational problem**.  
-It is a **stateful, safety-critical workflow orchestration problem**.
-
-PropFlow models maintenance as a **deterministic state machine**, where AI assists with reasoning and context — but never bypasses operational safeguards.
-
----
-
-## Design Philosophy
-
-PropFlow is built on the following principles:
-
-### 1. Workflow-First, Not Chat-First
-Maintenance resolution is a state machine, not an LLM conversation.
-
-### 2. AI Reasons, Systems Decide
-LLMs generate insights and recommendations.  
-Deterministic logic governs execution.
-
-### 3. Safety Over Autonomy
-Emergencies, ambiguity, and high-cost scenarios always escalate to humans.
-
-### 4. Enterprise Operability by Default
-Every action is auditable, replayable, permission-scoped, and reversible.
-
----
-
-## High-Level Architecture
-
-graph TD
-    subgraph Client_Layer [Client Layer]
-        A[Tenant App / Portal]
-    end
-
-    subgraph Infrastructure [Infrastructure & Security]
-        B[API Gateway]
-        B1[Authentication / Authorization]
-        B2[Rate Limiting]
-        B --> B1
-        B --> B2
-    end
-
-    subgraph Core_Engine [LangGraph Workflow Engine]
-        direction TB
-        C{Workflow Coordinator}
-        D[Triage Agent]
-        E[Knowledge Agent]
-        F[Execution Agent]
-        G[Human Operations Console]
-
-        C --> D
-        D -- Safe --> E
-        E -- Professional --> F
-        D -- Emergency --> G
-        F --> C
-    end
-
-    subgraph Persistence [Data & Compliance]
-        H[(Immutable Audit Log)]
-    end
-
-    A --> B --> C
-    C -. State Transitions .-> H
-    F -. Execution Trace .-> H
-    
-flowchart TD
-    Start((Tenant Issue)) --> Triage{Triage}
-
-    Triage -- Emergency --> Human[Human Override]
-    Human --> End((End))
-
-    Triage -- Needs Clarification --> Clarify[Clarification Loop]
-    Clarify --> Triage
-
-    Triage -- Safe --> Knowledge{Knowledge}
-
-    Knowledge -- Self-Resolvable --> SelfHelp[Self-Help Guidance]
-    SelfHelp --> Wait[Wait & Observe]
-    Wait --> Triage
-
-    Knowledge -- Professional Required --> Execute[Execution]
-    Execute --> Confirm[Confirmation]
-    Confirm --> End
+- [x] **Phase 1: MVP Core** (State, Agents, Mock Tools, Persistence)
+- [x] **Phase 2: Intelligence** (Integration with Real LLM - Gemini)
+- [x] **Phase 3: Knowledge** (RAG with TinyVectorStore + Gemini Embeddings)
+- [ ] **Phase 4: Web Interface** (FastAPI Backend + Next.js Frontend)
