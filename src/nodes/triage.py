@@ -1,7 +1,7 @@
 from typing import Literal, Optional
-from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.messages import SystemMessage
 from pydantic import BaseModel, Field
-from langchain_google_genai import ChatGoogleGenerativeAI
+
 
 from src.state import PropFlowState
 
@@ -45,7 +45,10 @@ def triage_node(state: PropFlowState):
     # Initialize LLM (Mocked or Real)
     # NOTE: In production, ensure GOOGLE_API_KEY is set.
     # We use structured output to ensure strict adherence to the schema.
-    llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)
+    from src.llm_factory import get_llm
+    
+    # Initialize LLM via Factory
+    llm = get_llm(temperature=0)
     structured_llm = llm.with_structured_output(TriageOutput)
     
     # Construct the prompt
