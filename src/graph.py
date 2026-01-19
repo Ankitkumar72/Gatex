@@ -3,14 +3,14 @@ from langgraph.checkpoint.sqlite import SqliteSaver
 import sqlite3
 from langchain_core.messages import AIMessage
 
-from src.state import PropFlowState
+from src.state import GatexState
 from src.nodes.triage import triage_node
 from src.nodes.knowledge import knowledge_node
 from src.nodes.execution import execution_node
 
 # --- Escalation / Endpoint Nodes ---
 
-def human_escalation_node(state: PropFlowState):
+def human_escalation_node(state: GatexState):
     """
     Node for handling emergencies or fallback cases.
     """
@@ -20,7 +20,7 @@ def human_escalation_node(state: PropFlowState):
         "resolution_strategy": "human_escalation"
     }
 
-def human_approval_node(state: PropFlowState):
+def human_approval_node(state: GatexState):
     """
     The 'Waiting Room' for human approval.
     In a real app, this might just be a state update, 
@@ -31,7 +31,7 @@ def human_approval_node(state: PropFlowState):
     # We'll use it to mark the status.
     return {"approval_status": False} # Reset or set status
 
-def dispatch_node(state: PropFlowState):
+def dispatch_node(state: GatexState):
     """
     Final node that 'sends' the email/work order.
     Only reached after approval.
@@ -45,7 +45,7 @@ def dispatch_node(state: PropFlowState):
 
 # --- Conditional Routers ---
 
-def route_triage(state: PropFlowState):
+def route_triage(state: GatexState):
     classification = state.get("classification")
     if classification == "emergency":
         return "human_escalation"
@@ -54,7 +54,7 @@ def route_triage(state: PropFlowState):
     else:
         return "knowledge" # Routine -> Check Policy
 
-def route_knowledge(state: PropFlowState):
+def route_knowledge(state: GatexState):
     strategy = state.get("resolution_strategy")
     if strategy == "diy_guide":
         return END # Issue resolved with guide
@@ -63,7 +63,7 @@ def route_knowledge(state: PropFlowState):
     else:
         return "execution" # Go to vendor search
 
-def route_execution(state: PropFlowState):
+def route_execution(state: GatexState):
     strategy = state.get("resolution_strategy")
     if strategy == "human_escalation":
         return "human_escalation"
@@ -71,7 +71,7 @@ def route_execution(state: PropFlowState):
 
 # --- Graph Construction ---
 
-workflow = StateGraph(PropFlowState)
+workflow = StateGraph(GatexState)
 
 # Add Nodes
 workflow.add_node("triage", triage_node)

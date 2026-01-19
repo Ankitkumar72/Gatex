@@ -1,8 +1,8 @@
 from langchain_core.messages import AIMessage
-from src.state import PropFlowState
+from src.state import GatexState
 from src.tools import search_lease_rag
 
-def knowledge_node(state: PropFlowState):
+def knowledge_node(state: GatexState):
     """
     The Researcher Node.
     Consults the 'lease' (RAG tool) to determine if this is a landlord or tenant responsibility.

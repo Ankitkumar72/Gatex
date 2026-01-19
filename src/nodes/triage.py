@@ -3,7 +3,7 @@ from langchain_core.messages import SystemMessage
 from pydantic import BaseModel, Field
 
 
-from src.state import PropFlowState
+from src.state import GatexState
 
 # 1. Pydantic Model for Structured Output
 class TriageOutput(BaseModel):
@@ -23,7 +23,7 @@ class TriageOutput(BaseModel):
     )
 
 # 2. System Prompt
-TRIAGE_SYSTEM_PROMPT = """You are the Triage Agent for PropFlow, a property management system.
+TRIAGE_SYSTEM_PROMPT = """You are the Triage Agent for Gatex, a property management system.
 Your goal is to analyze tenant maintenance requests and classify them for safety and urgency.
 
 RULES:
@@ -35,7 +35,7 @@ Output must be valid JSON matching the TriageOutput schema.
 """
 
 # 3. Node Function
-def triage_node(state: PropFlowState):
+def triage_node(state: GatexState):
     """
     The Gatekeeper Node. Analyzes the latest message and updates the state
     with classification and urgency.

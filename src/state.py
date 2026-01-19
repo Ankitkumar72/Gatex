@@ -10,9 +10,9 @@ class Vendor(TypedDict):
     rate_per_hour: float
     available: bool
 
-class PropFlowState(TypedDict):
+class GatexState(TypedDict):
     """
-    The shared state of the PropFlow graph.
+    The shared state of the Gatex graph.
     """
     # Messaging History
     # add_messages is a reducer that appends new messages to the list

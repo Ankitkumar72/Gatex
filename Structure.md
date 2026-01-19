@@ -18,13 +18,13 @@ Gatex is an AI-powered property management agent designed to handle tenant reque
 - **`.env.example`**: Template for environment variables.
 - **`requirements.txt`**: Python dependencies frozen for reproducibility.
 - **`Structure.md`**: This documentation file.
-- **`propflow.db`**: SQLite database for LangGraph state checkpoints.
+- **`gatex.db`**: SQLite database for LangGraph state checkpoints.
 
 ### 2. Source Code (`src/`)
 The core logic of the AI agent resides here.
 
 - **`graph.py`**: Defines the `LangGraph` state machine (workflow). Connects nodes and edges.
-- **`state.py`**: Defines `PropFlowState` (TypedDict), the shared memory between nodes.
+- **`state.py`**: Defines `GatexState` (TypedDict), the shared memory between nodes.
 - **`llm_factory.py`**: **[New]** Central factory configuration to instantiate AI models (Google/OpenAI) based on environment vars.
 - **`tiny_vector_store.py`**: Custom lightweight vector database implementation.
 - **`tools.py`**: Tool definitions (RAG search, vendor lookup, calendar check).

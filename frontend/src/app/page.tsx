@@ -21,8 +21,9 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8
 
 export default function Home() {
   const [input, setInput] = useState("");
+  // Initial message
   const [messages, setMessages] = useState<Message[]>([
-    { role: "agent", content: "Hello! I am PropFlow. How can I help with your property today?" },
+    { role: "agent", content: "Hello! I am Gatex. How can I help with your property today?" },
   ]);
   const [threadId, setThreadId] = useState<string | null>(null);
   const [status, setStatus] = useState<WorkflowStatus>(WORKFLOW_STATUS.ACTIVE);
@@ -90,7 +91,7 @@ export default function Home() {
           </div>
           <div>
             <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400 tracking-tight">
-              PropFlow Agent
+              Gatex Agent
             </h1>
             <p className="text-xs text-gray-500 font-medium tracking-wide uppercase">Property Management AI</p>
           </div>

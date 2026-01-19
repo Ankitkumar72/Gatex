@@ -40,7 +40,7 @@ class ApprovalRequest(BaseModel):
     action: str # 'approve', 'reject'
 
 # --- App Setup ---
-app = FastAPI(title="PropFlow API", version="1.0.0")
+app = FastAPI(title="Gatex API", version="1.0.0")
 
 # CORS for Frontend
 app.add_middleware(
@@ -53,11 +53,11 @@ app.add_middleware(
 
 @app.get("/")
 def read_root():
-    return {"message": "Welcome to PropFlow API. Visit /docs for Swagger UI."}
+    return {"message": "Welcome to Gatex API. Visit /docs for Swagger UI."}
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok", "service": "PropFlow Agent"}
+    return {"status": "ok", "service": "Gatex Agent"}
 
 @app.post("/agent/chat", response_model=ChatResponse)
 def chat_endpoint(req: ChatRequest):

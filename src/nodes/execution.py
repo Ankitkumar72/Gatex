@@ -1,9 +1,9 @@
 from datetime import datetime
 from langchain_core.messages import AIMessage
-from src.state import PropFlowState
+from src.state import GatexState
 from src.tools import vendor_database_query, calendar_check
 
-def execution_node(state: PropFlowState):
+def execution_node(state: GatexState):
     """
     The Coordinator Node.
     Finds a vendor, checks availability, and drafts a work order.
