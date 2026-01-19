@@ -1,4 +1,5 @@
 import os
+import random
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_core.tools import tool
 from typing import List, Dict, Union

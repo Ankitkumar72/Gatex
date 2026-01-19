@@ -45,7 +45,7 @@ def triage_node(state: PropFlowState):
     # Initialize LLM (Mocked or Real)
     # NOTE: In production, ensure GOOGLE_API_KEY is set.
     # We use structured output to ensure strict adherence to the schema.
-    llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro", temperature=0)
+    llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)
     structured_llm = llm.with_structured_output(TriageOutput)
     
     # Construct the prompt
