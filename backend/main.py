@@ -9,8 +9,20 @@ from pydantic import BaseModel
 # Add project root to sys.path so we can import src
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+# Load .env manually
+env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
+if os.path.exists(env_path):
+    print(f"Loading env from {env_path}")
+    with open(env_path, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith('#'):
+                key, _, value = line.partition('=')
+                os.environ[key.strip()] = value.strip().strip('"\'')
+
 from langchain_core.messages import HumanMessage
 from src.graph import app as graph_app
+
 
 # --- Models ---
 class ChatRequest(BaseModel):
@@ -95,6 +107,8 @@ def chat_endpoint(req: ChatRequest):
         )
 
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/agent/approve", response_model=ChatResponse)
@@ -123,7 +137,9 @@ def approve_endpoint(req: ApprovalRequest):
             final_state=snapshot.values
         )
     except Exception as e:
-         raise HTTPException(status_code=500, detail=str(e))
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn
