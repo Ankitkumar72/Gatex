@@ -1,223 +1,148 @@
-"use client";
+import React from 'react';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import FeatureCard from '@/components/FeatureCard';
+import {
+  Play,
+  Zap,
+  Wallet,
+  Smartphone,
+  Activity
+} from 'lucide-react';
 
-import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Send, User, Bot, AlertTriangle, CheckCircle, Loader2 } from "lucide-react";
-import clsx from "clsx";
-import { WORKFLOW_STATUS, WorkflowStatus } from "@/lib/constants";
-
-type Message = {
-  role: "user" | "agent";
-  content: string;
-};
-
-type ChatResponse = {
-  response: string;
-  thread_id: string;
-  status: WorkflowStatus;
-};
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
-
-export default function Home() {
-  const [input, setInput] = useState("");
-  // Initial message
-  const [messages, setMessages] = useState<Message[]>([
-    { role: "agent", content: "Hello! I am Gatex. How can I help with your property today?" },
-  ]);
-  const [threadId, setThreadId] = useState<string | null>(null);
-  const [status, setStatus] = useState<WorkflowStatus>(WORKFLOW_STATUS.ACTIVE);
-  const [loading, setLoading] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  // Auto-scroll
-  useEffect(() => {
-    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading]);
-
-  const sendMessage = async () => {
-    if (!input.trim()) return;
-
-    const userMsg = input;
-    setInput("");
-    setMessages((prev) => [...prev, { role: "user", content: userMsg }]);
-    setLoading(true);
-
-    try {
-      const res = await fetch(`${API_BASE_URL}/agent/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userMsg, thread_id: threadId }),
-      });
-      const data: ChatResponse = await res.json();
-
-      setThreadId(data.thread_id);
-      setStatus(data.status);
-      setMessages((prev) => [...prev, { role: "agent", content: data.response }]);
-    } catch (e) {
-      console.error(e);
-      setMessages((prev) => [...prev, { role: "agent", content: "Error connecting to server." }]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleApprove = async () => {
-    if (!threadId) return;
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_BASE_URL}/agent/approve`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ thread_id: threadId, action: "approve" }),
-      });
-      const data: ChatResponse = await res.json();
-      setStatus(data.status);
-      setMessages((prev) => [...prev, { role: "agent", content: data.response }]);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+export default function PropFlowLanding() {
   return (
-    <div className="flex flex-col h-screen bg-gray-950 text-gray-100 font-sans selection:bg-indigo-500/30">
-      {/* Header */}
-      <header className="p-4 border-b border-gray-800 bg-gray-900/50 backdrop-blur-xl flex justify-between items-center sticky top-0 z-10 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
-            <Bot className="text-white w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400 tracking-tight">
-              Gatex Agent
-            </h1>
-            <p className="text-xs text-gray-500 font-medium tracking-wide uppercase">Property Management AI</p>
-          </div>
+
+    <div className="min-h-screen bg-black text-white selection:bg-blue-500/30 bg-grid">
+      <Navbar />
+
+      {/* Hero Section */}
+      <section className="pt-20 pb-12 px-4 text-center">
+        <div className="inline-flex items-center gap-2 bg-green-500/10 border border-green-500/20 px-3 py-1 rounded-full text-[10px] text-green-400 uppercase tracking-widest font-bold mb-8">
+          <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+          Live System: AI Optimization Active | 99.9% Uptime
         </div>
-        <div className={clsx(
-          "text-xs px-3 py-1.5 rounded-full border flex items-center gap-2 font-medium transition-colors duration-300",
-          status === WORKFLOW_STATUS.WAITING_APPROVAL
-            ? "bg-amber-500/10 border-amber-500/20 text-amber-400"
-            : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
-        )}>
-          <span className={clsx("w-2 h-2 rounded-full animate-pulse",
-            status === WORKFLOW_STATUS.WAITING_APPROVAL ? "bg-amber-500" : "bg-emerald-500"
-          )} />
-          {(status || "active").toUpperCase().replace(/_/g, " ")}
-        </div>
-      </header>
 
-      {/* Chat Area */}
-      <main className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-transparent">
-        <AnimatePresence initial={false}>
-          {messages.map((msg, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 10, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-            >
-              {msg.role === "agent" && (
-                <div className="w-8 h-8 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center shrink-0 mt-1">
-                  <Bot size={14} className="text-indigo-400" />
-                </div>
-              )}
+        <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 max-w-4xl mx-auto">
+          The Operating System for <span className="text-gray-500">Modern Real Estate</span>
+        </h1>
 
-              <div
-                className={clsx(
-                  "max-w-[85%] md:max-w-[65%] p-4 rounded-2xl shadow-sm border text-sm md:text-base leading-relaxed",
-                  msg.role === "user"
-                    ? "bg-indigo-600 text-white rounded-br-none border-indigo-500 shadow-indigo-900/20"
-                    : "bg-gray-900 border-gray-800 text-gray-300 rounded-bl-none shadow-black/40"
-                )}
-              >
-                <p className="whitespace-pre-wrap">{msg.content}</p>
-              </div>
+        <p className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
+          Orchestrate maintenance, vendors, and tenant satisfaction with a single, high-velocity platform designed for scale.
+        </p>
 
-              {msg.role === "user" && (
-                <div className="w-8 h-8 rounded-full bg-indigo-900/50 border border-indigo-700/50 flex items-center justify-center shrink-0 mt-1">
-                  <User size={14} className="text-indigo-200" />
-                </div>
-              )}
-            </motion.div>
-          ))}
-        </AnimatePresence>
-
-        {loading && (
-          <motion.div
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex justify-start gap-3"
-          >
-            <div className="w-8 h-8 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center shrink-0">
-              <Bot size={14} className="text-indigo-400" />
-            </div>
-            <div className="bg-gray-900 border border-gray-800 px-4 py-3 rounded-2xl rounded-bl-none flex gap-1.5 items-center">
-              <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-              <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-              <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce"></span>
-            </div>
-          </motion.div>
-        )}
-        <div ref={scrollRef} />
-      </main>
-
-      {/* Approval Alert within Flow */}
-      <AnimatePresence>
-        {status === WORKFLOW_STATUS.WAITING_APPROVAL && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="w-full max-w-2xl mx-auto px-4 pb-4 absolute bottom-[88px] left-0 right-0 z-20"
-          >
-            <div className="bg-gray-900/90 border border-amber-500/30 p-4 rounded-xl flex items-center justify-between shadow-2xl shadow-black/50 backdrop-blur-md ring-1 ring-amber-500/20">
-              <div className="flex items-center gap-4">
-                <div className="p-2.5 bg-amber-500/10 rounded-lg text-amber-500 animate-pulse">
-                  <AlertTriangle size={24} />
-                </div>
-                <div>
-                  <h3 className="font-bold text-amber-100">Approval Required</h3>
-                  <p className="text-xs text-amber-200/70">The agent is ready to dispatch a work order.</p>
-                </div>
-              </div>
-              <button
-                onClick={handleApprove}
-                disabled={loading}
-                className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-gray-900 font-bold rounded-lg shadow-lg shadow-amber-900/20 transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2"
-              >
-                <CheckCircle size={18} />
-                Approve
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Input Area */}
-      <footer className="p-4 bg-gray-900/80 border-t border-gray-800 backdrop-blur-xl relative z-30">
-        <div className="flex items-center gap-3 max-w-4xl mx-auto">
-          <input
-            type="text"
-            className="flex-1 bg-gray-950 border border-gray-800 text-gray-100 p-3.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all placeholder:text-gray-600 shadow-inner"
-            placeholder="Type your request..."
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-            disabled={status === WORKFLOW_STATUS.WAITING_APPROVAL || loading}
-          />
-          <button
-            onClick={sendMessage}
-            disabled={status === WORKFLOW_STATUS.WAITING_APPROVAL || loading || !input.trim()}
-            className="p-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl disabled:opacity-50 disabled:grayscale transition-all shadow-lg active:scale-95 flex items-center justify-center w-14 group"
-          >
-            {loading ? <Loader2 className="animate-spin" /> : <Send className="group-hover:translate-x-0.5 transition-transform" />}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
+          <button className="bg-blue-600 hover:bg-blue-700 px-8 py-3 rounded-lg font-semibold transition w-full sm:w-auto">
+            Start Free Trial
+          </button>
+          <button className="bg-white/5 hover:bg-white/10 border border-white/10 px-8 py-3 rounded-lg font-semibold flex items-center gap-2 transition w-full sm:w-auto justify-center">
+            <Play size={16} fill="white" /> Watch Video
           </button>
         </div>
-      </footer>
+
+        {/* Dashboard Mockup */}
+        <div className="max-w-6xl mx-auto relative group">
+          <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl blur opacity-25 group-hover:opacity-40 transition duration-1000"></div>
+          <div className="relative bg-[#0F0F0F] rounded-xl border border-white/10 shadow-2xl overflow-hidden">
+            <img
+              src="/api/placeholder/1200/600"
+              alt="PropFlow Dashboard"
+              className="w-full opacity-80"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Trust Bar */}
+      <section className="py-20 border-y border-white/5">
+        <p className="text-center text-[10px] uppercase tracking-[0.2em] text-gray-500 font-bold mb-10">Trusted by production-scale teams</p>
+        <div className="flex flex-wrap justify-center gap-12 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
+          {['SKYLINE', 'VANTAGE', 'APEX REIT', 'NEXUS', 'URBANA'].map(logo => (
+            <span key={logo} className="font-black text-xl tracking-tighter">{logo}</span>
+          ))}
+        </div>
+      </section>
+
+      {/* Features Grid */}
+      <section className="max-w-7xl mx-auto py-32 px-8">
+        <div className="flex justify-between items-end mb-12">
+          <div className="max-w-xl">
+            <h2 className="text-4xl font-bold mb-4">Orchestration at scale</h2>
+            <p className="text-gray-400">Everything you need to manage complex property portfolios without the chaos.</p>
+          </div>
+          <button className="text-blue-500 text-sm font-medium flex items-center gap-1 hover:underline">
+            View all features
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <FeatureCard
+            size="large"
+            title="Autonomous Dispatch"
+            icon={Zap}
+            desc="Our AI analyzes ticket urgency, technician skill sets, and location to route maintenance requests in under 40ms."
+          >
+            <div className="h-24 w-full bg-gradient-to-r from-blue-500/20 to-transparent rounded border-l-2 border-blue-500" />
+          </FeatureCard>
+
+          <FeatureCard
+            title="Vendor Wallet"
+            icon={Wallet}
+            desc="Instant payouts for completed jobs. Zero friction."
+          >
+            <div className="flex items-end gap-1 h-20">
+              {[40, 70, 45, 90, 65].map((h, i) => (
+                <div key={i} className="flex-1 bg-purple-600/40 rounded-t" style={{ height: `${h}%` }} />
+              ))}
+            </div>
+          </FeatureCard>
+
+          <FeatureCard
+            title="Tenant Portal"
+            icon={Smartphone}
+            desc="Mobile-first experience for modern tenant standards."
+          >
+            <div className="bg-gray-800 h-32 rounded-t-xl mx-4 mt-2 border-x border-t border-gray-700" />
+          </FeatureCard>
+
+          <FeatureCard
+            size="large"
+            title="Predictive Maintenance"
+            icon={Activity}
+            desc="Identify HVAC and plumbing failures before they happen using IoT sensor data."
+          >
+            <div className="grid grid-cols-3 gap-4">
+              <div className="bg-white/5 p-3 rounded">
+                <p className="text-[10px] text-gray-500 uppercase">HVAC Health</p>
+                <p className="text-xl font-bold">98%</p>
+              </div>
+              <div className="bg-white/5 p-3 rounded">
+                <p className="text-[10px] text-gray-500 uppercase">Leak Sensors</p>
+                <p className="text-xl font-bold text-green-500">SECURE</p>
+              </div>
+              <div className="bg-white/5 p-3 rounded">
+                <p className="text-[10px] text-gray-500 uppercase">Energy Use</p>
+                <p className="text-xl font-bold text-orange-500">-12%</p>
+              </div>
+            </div>
+          </FeatureCard>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="max-w-5xl mx-auto px-8 py-32">
+        <div className="bg-[#0A0A0A] border border-gray-800 rounded-3xl p-16 text-center relative overflow-hidden">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
+          <h2 className="text-4xl md:text-5xl font-bold mb-6">Ready for production-grade control?</h2>
+          <p className="text-gray-400 mb-10 max-w-lg mx-auto">Join the high-performance teams managing over 500 million square feet on PropFlow.</p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button className="bg-white text-black px-8 py-3 rounded-lg font-bold">Get a Demo</button>
+            <button className="bg-transparent border border-gray-700 px-8 py-3 rounded-lg font-bold">Contact Sales</button>
+          </div>
+        </div>
+      </section>
+
+      <Footer />
     </div>
   );
 }
