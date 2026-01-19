@@ -10,7 +10,7 @@ import {
   Activity
 } from 'lucide-react';
 
-export default function PropFlowLanding() {
+export default function GateXLanding() {
   return (
 
     <div className="min-h-screen bg-black text-white selection:bg-blue-500/30 bg-grid">
@@ -46,7 +46,7 @@ export default function PropFlowLanding() {
           <div className="relative bg-[#0F0F0F] rounded-xl border border-white/10 shadow-2xl overflow-hidden">
             <img
               src="/api/placeholder/1200/600"
-              alt="PropFlow Dashboard"
+              alt="GateX Dashboard"
               className="w-full opacity-80"
             />
           </div>
@@ -134,7 +134,7 @@ export default function PropFlowLanding() {
         <div className="bg-[#0A0A0A] border border-gray-800 rounded-3xl p-16 text-center relative overflow-hidden">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
           <h2 className="text-4xl md:text-5xl font-bold mb-6">Ready for production-grade control?</h2>
-          <p className="text-gray-400 mb-10 max-w-lg mx-auto">Join the high-performance teams managing over 500 million square feet on PropFlow.</p>
+          <p className="text-gray-400 mb-10 max-w-lg mx-auto">Join the high-performance teams managing over 500 million square feet on GateX.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button className="bg-white text-black px-8 py-3 rounded-lg font-bold">Get a Demo</button>
             <button className="bg-transparent border border-gray-700 px-8 py-3 rounded-lg font-bold">Contact Sales</button>
