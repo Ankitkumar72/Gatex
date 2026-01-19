@@ -1,8 +1,8 @@
-# PropFlow Project Structure
+# Gatex Project Structure
 
 ## 🏗️ High-Level Architecture
 
-PropFlow is an AI-powered property management agent designed to handle tenant requests, verify policies using RAG, and draft work orders.
+Gatex is an AI-powered property management agent designed to handle tenant requests, verify policies using RAG, and draft work orders.
 
 - **Frontend**: Next.js (React) application for the tenant/manager interface.
 - **Backend**: FastAPI (Python) server exposing the AI agent via REST API.
