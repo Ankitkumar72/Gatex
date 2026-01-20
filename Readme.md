@@ -1,6 +1,6 @@
-# PropFlow: AI Agent for Property Maintenance
+# GateX: AI Agent for Property Maintenance
 
-PropFlow is an intelligent, autonomous agent system designed to triage, troubleshoot, and dispatch vendors for property maintenance requests. Built with **LangGraph**, it serves as a stateful orchestration engine that manages the entire lifecycle of a maintenance ticket—from the initial tenant SMS to the final vendor dispatch—while keeping a human in the loop for critical financial decisions.
+GateX is an intelligent, autonomous agent system designed to triage, troubleshoot, and dispatch vendors for property maintenance requests. Built with **LangGraph**, it serves as a stateful orchestration engine that manages the entire lifecycle of a maintenance ticket—from the initial tenant SMS to the final vendor dispatch—while keeping a human in the loop for critical financial decisions.
 
 ## 🚀 Key Features
 
@@ -23,10 +23,10 @@ PropFlow is an intelligent, autonomous agent system designed to triage, troubles
 ## 📂 Project Structure
 
 ```
-d:/PropFlow/
+d:/GateX/
 ├── src/
 │   ├── graph.py       # Main Application (Routing Logic & Conditional Edges)
-│   ├── state.py       # PropFlowState Schema (TypedDict)
+│   ├── state.py       # GateXState Schema (TypedDict)
 │   ├── nodes/         # The "Brains" of the operation
 │   │   ├── triage.py     # Gatekeeper (Emergency vs Routine)
 │   │   ├── knowledge.py  # Researcher (Lease/Policy checker)
@@ -36,7 +36,7 @@ d:/PropFlow/
 │   ├── interactive_cli.py    # Chat with the agent in your terminal
 │   ├── simulate_flow.py      # Run pre-canned scenarios
 │   └── verify_persistence.py # functionality tests
-├── propflow.db        # Local SQLite database for state persistence
+├── GateX.db        # Local SQLite database for state persistence
 └── requirements.txt   # Python dependencies
 ```
 
@@ -55,7 +55,7 @@ $env:GOOGLE_API_KEY="AIza-your-key-here"
 ```
 
 ### 3. Run the Agent
-Start the interactive CLI to chat with PropFlow:
+Start the interactive CLI to chat with GateX:
 ```bash
 python scripts/interactive_cli.py
 ```
