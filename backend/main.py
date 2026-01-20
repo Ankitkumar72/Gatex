@@ -19,8 +19,13 @@ if os.path.exists(env_path):
                 key, _, value = line.partition('=')
                 os.environ[key.strip()] = value.strip().strip('"\'')
 
+import langchain
 from langchain_core.messages import HumanMessage
+from langchain_community.cache import SQLiteCache
 from src.graph import app as graph_app
+
+# Enable Caching
+langchain.llm_cache = SQLiteCache(database_path=".langchain.db")
 
 # --- Models ---
 class ChatRequest(BaseModel):
