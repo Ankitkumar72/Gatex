@@ -19,9 +19,9 @@ def get_llm(temperature: float = 0) -> BaseChatModel:
     model_name = os.getenv("LLM_MODEL")
 
     if provider == "google":
-        # Default to gemini-2.5-flash if not set
-        model = model_name or "gemini-2.5-flash"
-        return ChatGoogleGenerativeAI(model=model, temperature=temperature)
+        # Default to gemini-1.5-flash (stable) instead of 2.5-flash (preview/strict limits)
+        model = model_name or "gemini-1.5-flash"
+        return ChatGoogleGenerativeAI(model=model, temperature=temperature, max_retries=2)
     
     elif provider == "openai":
         if not ChatOpenAI:

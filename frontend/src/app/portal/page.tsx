@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import React, { useState, useRef, useEffect } from 'react';
 import {
     Bot, User, Send, Paperclip, MoreHorizontal,
@@ -204,7 +205,7 @@ export default function TenantPortalWorkspace() {
                                 </div>
                                 <div className="flex flex-col items-end">
                                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Priority Level</span>
-                                    <span className={`flex items-center gap-1.5 px-3 py-1 bg-opacity-10 rounded text-xs font-bold border ${ticketState.priority === 'High' ? 'bg-orange-500 text-orange-500 border-orange-500/20' : 'bg-blue-500 text-blue-500 border-blue-500/20'}`}>
+                                    <span className={`flex items-center gap-1.5 px-3 py-1 rounded text-xs font-bold border ${ticketState.priority === 'High' ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' : 'bg-blue-500/10 text-blue-400 border-blue-500/20'}`}>
                                         <AlertTriangle size={12} /> {ticketState.priority}
                                     </span>
                                 </div>
@@ -234,7 +235,7 @@ export default function TenantPortalWorkspace() {
                                 <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
                                     <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div> Activity Log
                                 </h3>
-                                <button className="text-xs text-blue-500 hover:text-blue-400">View Full History</button>
+                                <Link href="/archive" className="text-xs text-blue-500 hover:text-blue-400">View Full History</Link>
                             </div>
 
                             <div className="space-y-6 relative pl-4 border-l border-slate-800 ml-2">

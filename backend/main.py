@@ -6,7 +6,6 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Load .env manually
@@ -23,14 +22,13 @@ if os.path.exists(env_path):
 from langchain_core.messages import HumanMessage
 from src.graph import app as graph_app
 
-
 # --- Models ---
 class ChatRequest(BaseModel):
     message: str
     thread_id: Optional[str] = None
     
 class ChatResponse(BaseModel):
-    response: str
+    message: str
     thread_id: str
     status: str # 'active', 'interrupted' (waiting for approval), 'completed'
     final_state: Optional[Dict[str, Any]] = None
@@ -67,15 +65,10 @@ def chat_endpoint(req: ChatRequest):
     
     # 2. Check for Approval State (Resume)
     # If the user is just sending text, but we are paused, we might need to handle it.
-    # But typically, 'resume' is a separate action. 
-    # Here we assume this is a NEW message or a continuation of an unblocked flow.
-    
     inputs = {"messages": [HumanMessage(content=req.message)], "request_id": thread_id}
     
     try:
         # Run graph to the next interruption or end
-        # We assume the graph is compiled with interrupt_before=["dispatch"]
-        
         # We need to run it until it stops
         final_event = None
         for event in graph_app.stream(inputs, config=config):
@@ -102,7 +95,7 @@ def chat_endpoint(req: ChatRequest):
                  ai_response = last_msg.content
         
         return ChatResponse(
-            response=ai_response,
+            message=ai_response,
             thread_id=thread_id,
             status=status,
             final_state=snapshot.values
@@ -123,7 +116,7 @@ def approve_endpoint(req: ApprovalRequest):
         
     if req.action.lower() != "approve":
         # Handle rejection (reset or end)
-        return ChatResponse(response="Request Rejected.", thread_id=req.thread_id, status="completed")
+        return ChatResponse(message="Request Rejected.", thread_id=req.thread_id, status="completed")
         
     # Resume
     try:
@@ -133,7 +126,7 @@ def approve_endpoint(req: ApprovalRequest):
             
         snapshot = graph_app.get_state(config)
         return ChatResponse(
-            response="Dispatch Approved and Sent.",
+            message="Dispatch Approved and Sent.",
             thread_id=req.thread_id,
             status="completed", # assuming dispatch is the end
             final_state=snapshot.values
