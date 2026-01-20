@@ -56,12 +56,15 @@ def route_triage(state: GatexState):
 
 def route_knowledge(state: GatexState):
     strategy = state.get("resolution_strategy")
-    if strategy == "diy_guide":
-        return END # Issue resolved with guide
+    if strategy in ["diy", "decline", "clarify"]:
+        return END # Issue resolved, rejected, or needs info
     elif strategy == "human_escalation":
         return "human_escalation"
-    else:
+    elif strategy == "vendor":
         return "execution" # Go to vendor search
+    else:
+        # Fallback
+        return END
 
 def route_execution(state: GatexState):
     strategy = state.get("resolution_strategy")
@@ -99,9 +102,9 @@ workflow.add_conditional_edges(
     "knowledge",
     route_knowledge,
     {
-        "diy_guide": END,
+        "execution": "execution",
         "human_escalation": "human_escalation",
-        "execution": "execution"
+        END: END
     }
 )
 

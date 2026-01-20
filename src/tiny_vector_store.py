@@ -23,11 +23,15 @@ class TinyVectorStore:
         with open(self.persist_path, "w", encoding="utf-8") as f:
             json.dump(self.documents, f)
 
-    def add_documents(self, text_list: List[str], embedding_list: List[List[float]]):
-        for text, vector in zip(text_list, embedding_list):
+    def add_documents(self, text_list: List[str], embedding_list: List[List[float]], metadatas: List[Dict[str, Any]] = None):
+        if metadatas is None:
+            metadatas = [{} for _ in text_list]
+            
+        for text, vector, meta in zip(text_list, embedding_list, metadatas):
             self.documents.append({
                 "content": text,
-                "vector": vector
+                "vector": vector,
+                "metadata": meta
             })
         self.save()
 
@@ -40,13 +44,13 @@ class TinyVectorStore:
         for doc in self.documents:
             v = doc["vector"]
             score = self._cosine_similarity(query_vector, v)
-            scores.append((score, doc["content"]))
+            scores.append((score, doc["content"], doc.get("metadata", {})))
 
         # Sort by score descending
         scores.sort(key=lambda x: x[0], reverse=True)
         
-        # Return top k text content
-        return [item[1] for item in scores[:k]]
+        # Return top k docs (content + metadata)
+        return [{"content": item[1], "metadata": item[2]} for item in scores[:k]]
 
     def _cosine_similarity(self, v1: List[float], v2: List[float]) -> float:
         dot_product = sum(a*b for a,b in zip(v1, v2))
