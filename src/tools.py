@@ -59,6 +59,12 @@ def vendor_database_query(category: str) -> List[Vendor]:
         ],
         "general": [
             {"id": "v5", "name": "Handy Andy", "rating": 4.5, "rate_per_hour": 80.0, "available": True},
+        ],
+        "appliances": [
+            {"id": "v6", "name": "Appliance Medics", "rating": 4.6, "rate_per_hour": 110.0, "available": True},
+        ],
+        "fire safety": [
+            {"id": "v7", "name": "SafeGuard Fire Protection", "rating": 5.0, "rate_per_hour": 200.0, "available": True},
         ]
     }
     

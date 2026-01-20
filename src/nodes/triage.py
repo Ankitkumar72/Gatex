@@ -31,6 +31,14 @@ RULES:
 2. **Routine**: Standard maintenance issues (leaky faucet, broken light, appliance issue).
 3. **Clarification Needed**: If the request is too vague to classify (e.g., "It's broken").
 
+CATEGORIES:
+- **Plumbing**: Leaks, clogs, water pressure, toilets, sinks.
+- **HVAC**: Heating, ventilation, air conditioning, thermostat.
+- **Electrical**: Lights, outlets, breakers, power issues.
+- **Appliances**: Refrigerator, stove, dishwasher, washer/dryer.
+- **Fire Safety**: Smoke detectors, carbon monoxide, fire hazards.
+- **General**: Windows, doors, floors, paint, pests, other.
+
 Output must be valid JSON matching the TriageOutput schema.
 """
 
