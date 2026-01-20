@@ -43,6 +43,25 @@ def dispatch_node(state: GatexState):
         "resolution_strategy": "resolved"
     }
 
+# --- New Nodes for Refined Flow ---
+
+def wait_for_tenant_node(state: GatexState):
+    """
+    Breakpoint node for clarification.
+    """
+    # This node just serves as a marker to interrupt before.
+    return {"status": "waiting_for_input"}
+
+def send_guide_node(state: GatexState):
+    """
+    Handles DIY cases by sending a guide.
+    """
+    msg = AIMessage(content="[DIY Guide] This is a tenant responsibility. Please refer to the drafted guide: https://example.com/diy-guide")
+    return {
+        "messages": [msg],
+        "resolution_strategy": "resolved"
+    }
+
 # --- Conditional Routers ---
 
 def route_triage(state: GatexState):
@@ -50,20 +69,23 @@ def route_triage(state: GatexState):
     if classification == "emergency":
         return "human_escalation"
     elif classification == "clarification_needed":
-        return END # Returns to user for input
+        return END # Returns to user for input (handled by backend loop usually, or we could route to wait_for_tenant)
     else:
         return "knowledge" # Routine -> Check Policy
 
 def route_knowledge(state: GatexState):
     strategy = state.get("resolution_strategy")
-    if strategy in ["diy", "decline", "clarify"]:
-        return END # Issue resolved, rejected, or needs info
+    if strategy == "diy":
+        return "send_guide" # New path
+    elif strategy == "decline":
+        return END # Just stop (or send decline msg node)
+    elif strategy == "clarify":
+        return "wait_for_tenant" # Trigger interrupt
     elif strategy == "human_escalation":
         return "human_escalation"
     elif strategy == "vendor":
         return "execution" # Go to vendor search
     else:
-        # Fallback
         return END
 
 def route_execution(state: GatexState):
@@ -83,6 +105,8 @@ workflow.add_node("execution", execution_node)
 workflow.add_node("human_escalation", human_escalation_node)
 workflow.add_node("human_approval", human_approval_node)
 workflow.add_node("dispatch", dispatch_node)
+workflow.add_node("send_guide", send_guide_node)
+workflow.add_node("wait_for_tenant", wait_for_tenant_node)
 
 # Set Entry Point
 workflow.set_entry_point("triage")
@@ -104,6 +128,8 @@ workflow.add_conditional_edges(
     {
         "execution": "execution",
         "human_escalation": "human_escalation",
+        "send_guide": "send_guide",
+        "wait_for_tenant": "wait_for_tenant",
         END: END
     }
 )
@@ -118,16 +144,13 @@ workflow.add_conditional_edges(
 )
 
 # Human-in-the-Loop Logic
-# We go from approval -> dispatch explicitly, BUT we interrupt before dispatch?
-# Actually design says: "The graph reaches a 'Waiting Room' state... Once approved, the graph resumes"
-# So we link approval -> dispatch, and set interrupt_before "dispatch"
 workflow.add_edge("human_approval", "dispatch")
 workflow.add_edge("dispatch", END)
 workflow.add_edge("human_escalation", END)
+workflow.add_edge("send_guide", END)
+workflow.add_edge("wait_for_tenant", END) # In reality this would END the turn, user replies, we resume.
 
 # Compile
-# We interrupt BEFORE 'dispatch' to allow human review of the drafted order
-# Use SqliteSaver for persistence across restarts
 import os
 db_path = os.getenv("DB_PATH", "propflow.db")
 conn = sqlite3.connect(db_path, check_same_thread=False)
@@ -135,5 +158,5 @@ checkpointer = SqliteSaver(conn)
 
 app = workflow.compile(
     checkpointer=checkpointer,
-    interrupt_before=["dispatch"] 
+    interrupt_before=["dispatch", "wait_for_tenant"] 
 )

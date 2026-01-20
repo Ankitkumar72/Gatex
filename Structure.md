@@ -64,11 +64,14 @@ The project uses a factory pattern (`src/llm_factory.py`) to decouple the logic 
 - Supports `google` (Gemini) and `openai` (GPT) out of the box.
 
 ### Retrieval Augmented Generation (RAG)
-- **Ingestion**: `scripts/ingest.py` reads lease documents and embeds them.
-- **Storage**: `tiny_vector_store.py` stores embeddings locally.
-- **Retrieval**: `src/nodes/knowledge.py` queries this store to answer policy questions.
+- **Ingestion**: `scripts/ingest.py` reads lease documents, prepends Section Headers for context, and embeds them.
+- **Storage**: `tiny_vector_store.py` stores embeddings + metadata locally in JSON.
+- **Retrieval**: `src/nodes/knowledge.py` ("Policy Auditor") queries this store to cite specific policies.
+- **Cycles**: 
+    - `knowledge` -> `wait_for_tenant`: Pauses graph to ask clarifying questions.
+    - `knowledge` -> `send_guide`: Automatically handles DIY issues.
 
 ### Human-in-the-Loop
-- The graph interrupts before the `dispatch` action.
-- The state persists in `propflow.db`.
-- Resume occurs via the `/agent/approve` endpoint.
+- **Approval**: The graph interrupts before the `dispatch` action.
+- **Bridging**: `backend/main.py` detects the interruption and exposes it as `waiting_for_approval`.
+- **Resume**: Occurs via the `/agent/approve` endpoint.

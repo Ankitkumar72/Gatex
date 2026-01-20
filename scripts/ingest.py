@@ -49,7 +49,9 @@ def ingest_lease():
                 
             # If adding this line exceeds chunk size, save chunk and start new one with overlap
             if current_len + len(line) > chunk_size and current_chunk:
-                chunk_text = " ".join(current_chunk)
+                # HEADER INJECTION: Prepend the section header to the text
+                chunk_text = f"[{current_section}] " + " ".join(current_chunk)
+                
                 chunks.append(chunk_text)
                 metadatas.append({"section": current_section})
                 
@@ -69,7 +71,9 @@ def ingest_lease():
             current_len += len(line)
             
         if current_chunk:
-            chunks.append(" ".join(current_chunk))
+             # HEADER INJECTION for last chunk
+            chunk_text = f"[{current_section}] " + " ".join(current_chunk)
+            chunks.append(chunk_text)
             metadatas.append({"section": current_section})
             
         return chunks, metadatas

@@ -90,6 +90,8 @@ def chat_endpoint(req: ChatRequest):
             status = "completed"
         elif snapshot.next == ('dispatch',):
             status = "waiting_for_approval"
+        elif snapshot.next == ('wait_for_tenant',):
+            status = "waiting_for_input"
             
         # Extract last AI message if available, or summarize status
         ai_response = "Request Processed."

@@ -39,14 +39,38 @@ def run_simulation(simulation_name, input_text, thread_id):
         print(">>> HIDL TRIGGERED: Graph paused for Human Approval. <<<")
         # Simulating Approval
         print(">>> Simulation: Human Approves Dispatch. Resuming... <<<")
-        # We can update state here if needed (e.g. set approval_status=True)
-        # app.update_state(config, {"approval_status": True}) 
-        # For now just resuming
+        # Resume
         for event in app.stream(None, config=config):
              for node_name, node_content in event.items():
                 print(f"[{node_name}] Processed")
                 if "messages" in node_content:
                     print(f"   => Message: {node_content['messages'][-1].content}")
+
+    elif state_snapshot.next == ('wait_for_tenant',):
+        print(">>> CLARIFICATION CYCLE: Graph paused for Tenant Input. <<<")
+        print(">>> Simulation: Tenant replies 'The sink in the master bath'. Resuming... <<<")
+        
+        # Simulating Tenant Reply
+        user_reply = "The sink in the master bath"
+        inputs = {"messages": [HumanMessage(content=user_reply)]}
+        # Note: In a real persistent graph, we would essentially be resuming or sending a new message to the existing thread.
+        # Since 'wait_for_tenant' isn't technically an interrupt in LangGraph unless we explicitly set interrupt_before, 
+        # but we DID set interrupt_before=["wait_for_tenant"].
+        
+        # So we resume by updating state with new input? Or just invoking stream with new input on same thread?
+        # Standard pattern: app.update_state(config, {"messages": [HumanMessage(content=user_reply)]}, as_node="wait_for_tenant")
+        # THEN resume with None.
+        
+        app.update_state(config, {"messages": [HumanMessage(content=user_reply)]}, as_node="wait_for_tenant")
+        
+        # Resume execution
+        for event in app.stream(None, config=config):
+              for node_name, node_content in event.items():
+                print(f"[{node_name}] Processed")
+                if "messages" in node_content:
+                    print(f"   => Message: {node_content['messages'][-1].content}")
+                if "resolution_strategy" in node_content:
+                    print(f"   => Strategy: {node_content['resolution_strategy']}")
 
 if __name__ == "__main__":
     # Case 1: Emergency (Fire)
@@ -57,3 +81,6 @@ if __name__ == "__main__":
     
     # Case 3: Execution + Approval (Leaky Faucet)
     run_simulation("Vendor Dispatch", "I have a leaky faucet in the bathroom constantly dripping.", "thread-3")
+
+    # Case 4: Clarification Needed
+    run_simulation("Clarification Cycle", "It's broken and won't work.", "thread-4")
