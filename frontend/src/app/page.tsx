@@ -23,7 +23,7 @@ export default function GateXLanding() {
           Live System: AI Optimization Active | 99.9% Uptime
         </div>
 
-        <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 max-w-4xl mx-auto">
+        <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight mb-6 max-w-4xl mx-auto">
           The Operating System for <span className="text-gray-500">Modern Real Estate</span>
         </h1>
 
@@ -42,7 +42,7 @@ export default function GateXLanding() {
 
         {/* Dashboard Mockup */}
         <div className="max-w-6xl mx-auto relative group">
-          <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl blur opacity-25 group-hover:opacity-40 transition duration-1000"></div>
+          <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl blur opacity-25 group-hover:opacity-40 transition duration-1000 hidden sm:block"></div>
           <div className="relative bg-[#0F0F0F] rounded-xl border border-white/10 shadow-2xl overflow-hidden">
             <img
               src="/api/placeholder/1200/600"
@@ -80,7 +80,7 @@ export default function GateXLanding() {
             size="large"
             title="Autonomous Dispatch"
             icon={Zap}
-            desc="Our AI analyzes ticket urgency, technician skill sets, and location to route maintenance requests in under 40ms."
+            desc="Our LangGraph-driven agent triages incoming tickets, verifies lease obligations, and dispatches the ideal vendor in < 40ms without human intervention."
           >
             <div className="h-24 w-full bg-gradient-to-r from-blue-500/20 to-transparent rounded border-l-2 border-blue-500" />
           </FeatureCard>
@@ -88,7 +88,7 @@ export default function GateXLanding() {
           <FeatureCard
             title="Vendor Wallet"
             icon={Wallet}
-            desc="Instant payouts for completed jobs. Zero friction."
+            desc="Programmatic escrow and instant payouts triggered automatically upon agent-verified job completion."
           >
             <div className="flex items-end gap-1 h-20">
               {[40, 70, 45, 90, 65].map((h, i) => (
@@ -109,7 +109,7 @@ export default function GateXLanding() {
             size="large"
             title="Predictive Maintenance"
             icon={Activity}
-            desc="Identify HVAC and plumbing failures before they happen using IoT sensor data."
+            desc="Real-time IoT telemetry feeds directly into our reasoning engine to flag HVAC or plumbing anomalies before the tenant even notices."
           >
             <div className="grid grid-cols-3 gap-4">
               <div className="bg-white/5 p-3 rounded">
@@ -130,7 +130,7 @@ export default function GateXLanding() {
       </section>
 
       {/* Final CTA */}
-      <section className="max-w-5xl mx-auto px-8 py-32">
+      <section className="max-w-5xl mx-auto px-4 sm:px-8 py-32">
         <div className="bg-[#0A0A0A] border border-gray-800 rounded-3xl p-16 text-center relative overflow-hidden">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
           <h2 className="text-4xl md:text-5xl font-bold mb-6">Ready for production-grade control?</h2>
