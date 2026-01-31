@@ -22,7 +22,9 @@ PropFlow (formerly Gatex) is an AI-powered property management agent designed to
 - **`Readme.md`**: Project overview and setup instructions.
 - **`propflow.db`**: SQLite database for LangGraph state checkpoints.
 - **`propflow_knowledge.json`**: JSON store for vector embeddings and metadata.
-- **`sample_lease.txt`**: Sample lease document for RAG ingestion.
+- **`docs/`**: Documentation and policy files.
+    - **`sample_lease.txt`**: Sample lease document for RAG ingestion.
+- **`migrations/`**: Database migration scripts.
 
 ### 2. Core AI Logic (`src/`)
 The core reasoning engine of the agent resides here.
@@ -31,7 +33,10 @@ The core reasoning engine of the agent resides here.
 - **`state.py`**: Defines `GatexState` (TypedDict), the shared memory between nodes.
 - **`llm_factory.py`**: Central factory configuration to instantiate AI models (Google/OpenAI).
 - **`tiny_vector_store.py`**: Custom lightweight vector database implementation.
-- **`tools.py`**: Tool definitions (RAG search, vendor lookup, calendar check).
+- **`tools.py`**: Tool definitions.
+    - **`search_lease()`**: Queries `tiny_vector_store` for policy compliance.
+    - **`dispatch_vendor()`**: *Requires manual approval.* Drafts a work order for the property manager.
+    - **`check_calendar()`**: Interface with Google/Outlook to find vendor slots.
 
 #### Nodes (`src/nodes/`)
 Individual steps in the agent workflow:
@@ -44,6 +49,7 @@ Individual steps in the agent workflow:
     - Exposes POST `/agent/chat` for tenant interaction.
     - Exposes POST `/agent/approve` for property manager authorization.
     - Handles CORS and manual `.env` loading.
+    - Handles session persistence via `thread_id` headers, allowing the AI to 'remember' the state of a specific maintenance request across multiple API calls.
 - **`propflow.db`**: Backend-specific database file (if distinct from root).
 
 ### 4. Frontend (`frontend/`)
@@ -57,6 +63,9 @@ Next.js web application for the user interface.
 - **`dashboard/`**: Dashboard pages.
 - **`login/`**: Authentication pages.
 - **`archive/`**, **`developers/`**, **`platform/`**, **`portal/`**, **`pricing/`**, **`solutions/`**, **`technician/`**: Feature-specific routes.
+
+#### Types (`frontend/src/types/`)
+- Directory for TypeScript type definitions (`interface MaintenanceRequest`, etc).
 
 #### Components (`frontend/src/components/`)
 Reusable UI components.
@@ -81,6 +90,14 @@ Utilities for development, testing, and data management.
 
 ## 🔑 Key Concepts
 
+### Shared State (`GatexState`)
+The agent tracks the following throughout the lifecycle:
+- `messages`: History of the conversation.
+- `user_request`: The parsed intent of the tenant.
+- `policy_context`: Data retrieved from RAG for grounding.
+- `is_emergency`: Boolean flag set by the triage node.
+- `approval_status`: Enum [pending, approved, denied].
+
 ### Model Agnostic Design
 The project uses a factory pattern (`src/llm_factory.py`) to decouple the logic from specific providers.
 - Switch providers by changing `LLM_PROVIDER` in `.env`.
@@ -94,3 +111,8 @@ The project uses a factory pattern (`src/llm_factory.py`) to decouple the logic 
 - **Approval**: The graph interrupts before critical actions (dispatch).
 - **Bridging**: `backend/main.py` exposes `waiting_for_approval` state.
 - **Resume**: Property managers approve via `/agent/approve`.
+
+## 🤖 Agentic Behavior & Safety
+- **Interrupt Points**: The graph is hard-coded to interrupt at the `execution.py` node if a vendor dispatch is required.
+- **RAG Grounding**: The `knowledge.py` node enforces a "Strict Mode"—if a policy isn't found in the vector store, the agent must escalate to a human rather than guessing.
+- **State Cleanup**: `scripts/db_cleanup.py` is provided to wipe old checkpoints and reset the graph state for testing.
