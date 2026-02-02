@@ -1,11 +1,14 @@
 import React from 'react';
+import Link from 'next/link';
 
 const Footer = () => (
     <footer className="border-t border-white/5 pt-20 pb-10 px-8 max-w-7xl mx-auto">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-12 mb-20">
             <div className="col-span-2">
                 <div className="flex items-center gap-2 mb-6">
-                    <span className="font-bold text-lg">GateX</span>
+                    <Link href="/" className="flex items-center gap-2 z-50">
+                        <span className="text-white font-bold text-xl tracking-tight">GateX</span>
+                    </Link>
                 </div>
                 <p className="text-gray-500 text-sm max-w-xs">The operating system for modern real estate portfolios. Built for speed, reliability, and scale.</p>
             </div>
