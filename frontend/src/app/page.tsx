@@ -45,7 +45,7 @@ export default function GateXLanding() {
           <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl blur opacity-25 group-hover:opacity-40 transition duration-1000 hidden sm:block"></div>
           <div className="relative bg-[#0F0F0F] rounded-xl border border-white/10 shadow-2xl overflow-hidden">
             <img
-              src="/api/placeholder/1200/600"
+              src="/gatex-dashboard.png"
               alt="GateX Dashboard"
               className="w-full opacity-80"
             />
