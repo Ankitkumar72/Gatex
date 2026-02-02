@@ -5,7 +5,6 @@ const Footer = () => (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-12 mb-20">
             <div className="col-span-2">
                 <div className="flex items-center gap-2 mb-6">
-                    <div className="w-6 h-6 bg-blue-600 rounded" />
                     <span className="font-bold text-lg">GateX</span>
                 </div>
                 <p className="text-gray-500 text-sm max-w-xs">The operating system for modern real estate portfolios. Built for speed, reliability, and scale.</p>
