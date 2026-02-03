@@ -2,9 +2,12 @@ import sys
 import os
 import uuid
 from typing import List, Optional, Dict, Any
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
+from slowapi.errors import RateLimitExceeded
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -24,8 +27,26 @@ from langchain_core.messages import HumanMessage
 from langchain_community.cache import SQLiteCache
 from src.graph import app as graph_app
 
+# Security imports
+from backend.config import get_settings
+from backend.auth import (
+    hash_password, verify_password, create_access_token, create_refresh_token,
+    get_current_user, require_role, UserRole, User,
+    LoginRequest, RegisterRequest, TokenResponse
+)
+from backend.database import init_db, get_db, UserDB
+from backend.rate_limiting import limiter, rate_limit_exceeded_handler
+from backend.logging_config import logger
+
 # Enable Caching
 langchain.llm_cache = SQLiteCache(database_path=".langchain.db")
+
+# Get settings
+settings = get_settings()
+
+# Initialize database
+init_db()
+logger.info("Database initialized")
 
 # --- Models ---
 class ChatRequest(BaseModel):
@@ -43,16 +64,26 @@ class ApprovalRequest(BaseModel):
     action: str # 'approve', 'reject'
 
 # --- App Setup ---
-app = FastAPI(title="Gatex API", version="1.0.0")
+app = FastAPI(
+    title=settings.APP_NAME,
+    version=settings.APP_VERSION,
+    debug=settings.DEBUG
+)
 
-# CORS for Frontend
+# Rate Limiting
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
+
+# CORS Configuration (SECURED)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # In production, set to Next.js URL
+    allow_origins=settings.allowed_origins_list,  # ✅ Locked down to configured origins
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
 )
+
+logger.info(f"CORS allowed origins: {settings.allowed_origins_list}")
 
 @app.get("/")
 def read_root():
@@ -60,10 +91,103 @@ def read_root():
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok", "service": "Gatex Agent"}
+    logger.info("Health check requested")
+    return {"status": "ok", "service": "Gatex Agent", "version": settings.APP_VERSION}
+
+
+# =====================
+# AUTHENTICATION ROUTES
+# =====================
+
+@app.post("/auth/register", response_model=TokenResponse)
+@limiter.limit("3/minute")
+async def register(request: RegisterRequest, db: Session = Depends(get_db)):
+    """Register a new user"""
+    logger.info(f"Registration attempt: {request.email}")
+    
+    # Check if user exists
+    existing_user = db.query(UserDB).filter(UserDB.email == request.email).first()
+    if existing_user:
+        logger.warning(f"Registration failed - email exists: {request.email}")
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Create new user
+    user_id = str(uuid.uuid4())
+    hashed_pwd = hash_password(request.password)
+    
+    new_user = UserDB(
+        id=user_id,
+        email=request.email,
+        hashed_password=hashed_pwd,
+        name=request.name,
+        role=request.role
+    )
+    
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    
+    # Create tokens
+    access_token = create_access_token({"sub": user_id, "email": request.email, "role": request.role, "name": request.name})
+    refresh_token = create_refresh_token({"sub": user_id})
+    
+    logger.info(f"User registered successfully: {request.email}")
+    
+    return TokenResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        user=User(id=user_id, email=request.email, role=request.role, name=request.name)
+    )
+
+
+@app.post("/auth/login", response_model=TokenResponse)
+@limiter.limit(settings.LOGIN_RATE_LIMIT)
+async def login(request: LoginRequest, db: Session = Depends(get_db)):
+    """Login user and return JWT tokens"""
+    logger.info(f"Login attempt: {request.email}")
+    
+    # Find user
+    user = db.query(UserDB).filter(UserDB.email == request.email).first()
+    if not user or not verify_password(request.password, user.hashed_password):
+        logger.warning(f"Failed login attempt: {request.email}")
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    if not user.is_active:
+        logger.warning(f"Login attempt for inactive user: {request.email}")
+        raise HTTPException(status_code=403, detail="Account is inactive")
+    
+    # Create tokens
+    access_token = create_access_token({"sub": user.id, "email": user.email, "role": user.role, "name": user.name})
+    refresh_token = create_refresh_token({"sub": user.id})
+    
+    logger.info(f"User logged in successfully: {request.email}")
+    
+    return TokenResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        user=User(id=user.id, email=user.email, role=user.role, name=user.name)
+    )
+
+
+@app.get("/auth/me", response_model=User)
+async def get_me(current_user: User = Depends(get_current_user)):
+    """Get current authenticated user"""
+    return current_user
+
+
+# =====================
+# AGENT ROUTES (PROTECTED)
+# =====================
 
 @app.post("/agent/chat", response_model=ChatResponse)
-def chat_endpoint(req: ChatRequest):
+@limiter.limit("20/minute")
+async def chat_endpoint(
+    req: ChatRequest,
+    current_user: User = Depends(get_current_user)  # ✅ Authentication required
+):
+    """Chat with AI agent (authenticated users only)"""
+    logger.info(f"Chat request from user {current_user.email}, thread: {req.thread_id}")
+    
     # 1. Setup ID
     thread_id = req.thread_id or f"web-{uuid.uuid4().hex[:6]}"
     config = {"configurable": {"thread_id": thread_id}}
@@ -109,10 +233,18 @@ def chat_endpoint(req: ChatRequest):
     except Exception as e:
         import traceback
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error in chat endpoint: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.post("/agent/approve", response_model=ChatResponse)
-def approve_endpoint(req: ApprovalRequest):
+@limiter.limit("10/minute")
+async def approve_endpoint(
+    req: ApprovalRequest,
+    current_user: User = Depends(require_role(UserRole.MANAGER, UserRole.ADMIN))  # ✅ Manager/Admin only
+):
+    """Approve dispatch (managers/admins only)"""
+    logger.info(f"Approval request by {current_user.email} for thread {req.thread_id}")
+    
     config = {"configurable": {"thread_id": req.thread_id}}
     snapshot = graph_app.get_state(config)
     
@@ -139,7 +271,8 @@ def approve_endpoint(req: ApprovalRequest):
     except Exception as e:
         import traceback
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error in approval endpoint: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 if __name__ == "__main__":
     import uvicorn
