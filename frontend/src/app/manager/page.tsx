@@ -1,17 +1,35 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import {
     LayoutDashboard, Building2, Wrench, DollarSign, Users, Settings, Bell, Search,
     Check, X, MessageSquare, AlertTriangle, ChevronRight, MoreHorizontal,
-    Maximize2, Info, Calendar, ChevronLeft
+    Maximize2, Info, Calendar, ChevronLeft, Menu as MenuIcon, MapPin as MapPinIcon
 } from 'lucide-react';
 
 export default function ManagerDashboard() {
-    return (
-        <div className="flex bg-[#0b0c10] text-slate-300 font-sans min-h-screen">
+    // Mobile view state: 'main', 'nav', 'utils'
+    const [mobileView, setMobileView] = useState<'main' | 'nav' | 'utils'>('main');
 
-            {/* 1. Sidebar */}
-            <aside className="w-64 bg-[#0f1116] border-r border-slate-800 flex flex-col shrink-0">
+    return (
+        <div className="flex bg-[#0b0c10] text-slate-300 font-sans min-h-screen relative">
+
+            {/* 1. Left Sidebar - Hidden on mobile, shown via state */}
+            <aside className={`
+                ${mobileView === 'nav' ? 'flex' : 'hidden lg:flex'}
+                w-full lg:w-64 bg-[#0f1116] border-r border-slate-800 flex-col shrink-0
+                fixed lg:relative inset-0 lg:inset-auto z-40 lg:z-auto
+            `}>
+                {/* Mobile Close Button */}
+                <div className="lg:hidden flex items-center justify-between p-4 border-b border-slate-800">
+                    <h2 className="text-white font-bold">Menu</h2>
+                    <button
+                        onClick={() => setMobileView('main')}
+                        className="p-2 hover:bg-slate-800 rounded text-slate-400"
+                    >
+                        <X size={20} />
+                    </button>
+                </div>
+
                 <div className="p-5 flex items-center gap-3">
                     <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white font-bold text-lg">G</div>
                     <div>
@@ -20,7 +38,7 @@ export default function ManagerDashboard() {
                     </div>
                 </div>
 
-                <div className="px-5 py-2">
+                <div className="px-5 py-2 flex-1 overflow-y-auto">
                     <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-3">Menu</p>
                     <nav className="space-y-1">
                         <NavItem icon={<LayoutDashboard size={18} />} label="Dashboard" active />
@@ -29,31 +47,31 @@ export default function ManagerDashboard() {
                         <NavItem icon={<DollarSign size={18} />} label="Finance" />
                         <NavItem icon={<Users size={18} />} label="Users" />
                     </nav>
-                </div>
 
-                <div className="px-5 mt-4">
-                    <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-3">System Health</p>
-                    <div className="grid grid-cols-2 gap-3">
-                        <HealthSquare value="14" label="Open" color="text-white" />
-                        <HealthSquare value="5" label="Pending" color="text-orange-500" />
-                        <HealthSquare value="28" label="Resolved" color="text-green-500" />
-                        <HealthSquare value="98%" label="Uptime" color="text-white" />
-                    </div>
-                </div>
-
-                <div className="mt-auto p-5 border-t border-slate-800">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-white font-bold text-sm">October 2023</span>
-                        <div className="flex gap-1">
-                            <ChevronLeft size={14} className="text-slate-500" />
-                            <ChevronRight size={14} className="text-slate-500" />
+                    <div className="mt-6">
+                        <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-3">System Health</p>
+                        <div className="grid grid-cols-2 gap-3">
+                            <HealthSquare value="14" label="Open" color="text-white" />
+                            <HealthSquare value="5" label="Pending" color="text-orange-500" />
+                            <HealthSquare value="28" label="Resolved" color="text-green-500" />
+                            <HealthSquare value="98%" label="Uptime" color="text-white" />
                         </div>
                     </div>
-                    {/* Fake Calendar Grid */}
-                    <div className="grid grid-cols-7 gap-1 text-[10px] text-center text-slate-400">
-                        <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
-                        <span className="opacity-30">29</span><span className="opacity-30">30</span>
-                        <span className="text-white font-bold">1</span><span>2</span><span>3</span><span className="bg-blue-600 rounded-full text-white">4</span><span>5</span>
+
+                    <div className="mt-6">
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="text-white font-bold text-sm">October 2023</span>
+                            <div className="flex gap-1">
+                                <ChevronLeft size={14} className="text-slate-500" />
+                                <ChevronRight size={14} className="text-slate-500" />
+                            </div>
+                        </div>
+                        {/* Fake Calendar Grid */}
+                        <div className="grid grid-cols-7 gap-1 text-[10px] text-center text-slate-400">
+                            <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+                            <span className="opacity-30">29</span><span className="opacity-30">30</span>
+                            <span className="text-white font-bold">1</span><span>2</span><span>3</span><span className="bg-blue-600 rounded-full text-white">4</span><span>5</span>
+                        </div>
                     </div>
                 </div>
 
@@ -63,146 +81,181 @@ export default function ManagerDashboard() {
                             {/* Avatar Placeholder */}
                             <div className="w-full h-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold text-xs">AM</div>
                         </div>
-                        <div>
-                            <p className="text-sm font-bold text-white leading-none">Alex Morgan</p>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-white leading-none truncate">Alex Morgan</p>
                             <p className="text-[10px] text-slate-500">Lead Manager</p>
                         </div>
-                        <Settings size={16} className="ml-auto text-slate-500 hover:text-white" />
+                        <Settings size={16} className="text-slate-500 hover:text-white flex-shrink-0" />
                     </div>
                 </div>
             </aside>
 
             {/* 2. Main Content - Center Queue */}
-            <main className="flex-1 p-8 border-r border-slate-800 overflow-y-auto w-full max-w-4xl mx-auto">
+            <main className={`
+                ${mobileView === 'main' ? 'flex' : 'hidden lg:flex'}
+                flex-1 flex-col w-full lg:border-r border-slate-800 overflow-y-auto
+            `}>
+                {/* Mobile Header */}
+                <div className="lg:hidden sticky top-0 z-30 bg-[#0f1116] border-b border-slate-800 px-4 py-3 flex items-center justify-between">
+                    <button
+                        onClick={() => setMobileView('nav')}
+                        className="p-2 hover:bg-slate-800 rounded text-slate-400"
+                    >
+                        <MenuIcon size={20} />
+                    </button>
+                    <h1 className="text-white font-bold text-sm">Manager Dashboard</h1>
+                    <button
+                        onClick={() => setMobileView('utils')}
+                        className="p-2 hover:bg-slate-800 rounded text-slate-400"
+                    >
+                        <MapPinIcon size={20} />
+                    </button>
+                </div>
 
-                {/* Header */}
-                <header className="mb-8">
-                    <div className="flex items-center justify-between mb-4">
-                        <h1 className="text-3xl font-bold text-white tracking-tight">HITL Priority Queue</h1>
-                        <div className="flex bg-[#1c212c] rounded-lg p-1 border border-slate-800">
-                            <button className="px-3 py-1 bg-slate-700 text-white text-xs font-bold rounded shadow-sm">All</button>
-                            <button className="px-3 py-1 text-slate-500 hover:text-white text-xs font-bold rounded transition">High Cost</button>
-                            <button className="px-3 py-1 text-slate-500 hover:text-white text-xs font-bold rounded transition">Emergency</button>
-                        </div>
-                    </div>
-                    <p className="text-slate-500 text-sm mb-6">Human-in-the-Loop review for high-risk tickets.</p>
-
-                    <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 flex items-center gap-3 mb-8">
-                        <AlertTriangle size={18} className="text-red-500" />
-                        <span className="text-sm text-red-400 font-medium">2 Emergency tickets require immediate dispatch approval.</span>
-                    </div>
-                </header>
-
-                <div className="space-y-6">
-                    {/* Card 1: HVAC */}
-                    <div className="bg-[#16181d] rounded-xl border border-slate-800 p-6 relative group overflow-hidden">
-                        <div className="absolute top-0 left-0 w-1 h-full bg-orange-500"></div>
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="flex items-center gap-2">
-                                <span className="bg-slate-800 text-slate-400 text-[10px] font-mono px-1.5 py-0.5 rounded border border-slate-700">#4920</span>
-                                <span className="bg-orange-500/10 text-orange-500 text-[10px] font-bold px-2 py-0.5 rounded border border-orange-500/20 uppercase tracking-wide flex items-center gap-1">
-                                    <DollarSign size={10} /> High Cost
-                                </span>
+                <div className="p-4 sm:p-6 lg:p-8">
+                    {/* Header */}
+                    <header className="mb-6 sm:mb-8">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
+                            <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">HITL Priority Queue</h1>
+                            <div className="flex bg-[#1c212c] rounded-lg p-1 border border-slate-800 w-full sm:w-auto">
+                                <button className="flex-1 sm:flex-initial px-3 py-1 bg-slate-700 text-white text-xs font-bold rounded shadow-sm">All</button>
+                                <button className="flex-1 sm:flex-initial px-3 py-1 text-slate-500 hover:text-white text-xs font-bold rounded transition">High Cost</button>
+                                <button className="flex-1 sm:flex-initial px-3 py-1 text-slate-500 hover:text-white text-xs font-bold rounded transition">Emergency</button>
                             </div>
-                            <span className="text-xs text-slate-500">24m ago</span>
                         </div>
+                        <p className="text-slate-500 text-sm mb-6">Human-in-the-Loop review for high-risk tickets.</p>
 
-                        <h2 className="text-xl font-bold text-white mb-2">HVAC Unit Replacement - Rooftop</h2>
-                        <p className="text-sm text-slate-400 leading-relaxed mb-6">
-                            Technician reports compressor failure on main rooftop unit. Replacement required. Quote exceeds auto-approval threshold of $1,000.
-                        </p>
+                        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 flex items-start gap-3">
+                            <AlertTriangle size={18} className="text-red-500 flex-shrink-0 mt-0.5" />
+                            <span className="text-xs sm:text-sm text-red-400 font-medium">2 Emergency tickets require immediate dispatch approval.</span>
+                        </div>
+                    </header>
 
-                        <div className="grid grid-cols-2 gap-4 mb-6 pt-4 border-t border-slate-800/50">
-                            <div>
-                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Estimated Cost</p>
-                                <p className="text-xl font-bold text-white tabular-nums">$4,200.00</p>
-                            </div>
-                            <div>
-                                <div className="flex justify-between items-end mb-1">
-                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">AI Confidence</p>
-                                    <span className="text-xs font-bold text-green-400">94%</span>
+                    <div className="space-y-4 sm:space-y-6 pb-20 lg:pb-0">
+                        {/* Card 1: HVAC */}
+                        <div className="bg-[#16181d] rounded-xl border border-slate-800 p-4 sm:p-6 relative group overflow-hidden">
+                            <div className="absolute top-0 left-0 w-1 h-full bg-orange-500"></div>
+                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 gap-2">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="bg-slate-800 text-slate-400 text-[10px] font-mono px-1.5 py-0.5 rounded border border-slate-700">#4920</span>
+                                    <span className="bg-orange-500/10 text-orange-500 text-[10px] font-bold px-2 py-0.5 rounded border border-orange-500/20 uppercase tracking-wide flex items-center gap-1">
+                                        <DollarSign size={10} /> High Cost
+                                    </span>
                                 </div>
-                                <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                                    <div className="h-full bg-green-500 w-[94%] rounded-full"></div>
+                                <span className="text-xs text-slate-500">24m ago</span>
+                            </div>
+
+                            <h2 className="text-lg sm:text-xl font-bold text-white mb-2">HVAC Unit Replacement - Rooftop</h2>
+                            <p className="text-sm text-slate-400 leading-relaxed mb-6">
+                                Technician reports compressor failure on main rooftop unit. Replacement required. Quote exceeds auto-approval threshold of $1,000.
+                            </p>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 pt-4 border-t border-slate-800/50">
+                                <div>
+                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Estimated Cost</p>
+                                    <p className="text-xl font-bold text-white tabular-nums">$4,200.00</p>
+                                </div>
+                                <div>
+                                    <div className="flex justify-between items-end mb-1">
+                                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">AI Confidence</p>
+                                        <span className="text-xs font-bold text-green-400">94%</span>
+                                    </div>
+                                    <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                        <div className="h-full bg-green-500 w-[94%] rounded-full"></div>
+                                    </div>
                                 </div>
                             </div>
+
+                            <div className="flex flex-col sm:flex-row gap-3">
+                                <button className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2.5 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2">
+                                    <Check size={16} /> Approve
+                                </button>
+                                <button className="flex-1 bg-[#1c212c] hover:bg-slate-800 border border-slate-700 text-white py-2.5 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2">
+                                    <X size={16} /> Reject
+                                </button>
+                                <button className="w-full sm:w-10 h-10 rounded-lg border border-slate-700 flex items-center justify-center text-slate-400 hover:text-white">
+                                    <MessageSquare size={18} />
+                                </button>
+                            </div>
                         </div>
 
-                        <div className="flex gap-3">
-                            <button className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2.5 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2">
-                                <Check size={16} /> Approve
-                            </button>
-                            <button className="flex-1 bg-[#1c212c] hover:bg-slate-800 border border-slate-700 text-white py-2.5 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2">
-                                <X size={16} /> Reject
-                            </button>
-                            <button className="w-10 h-10 rounded-lg border border-slate-700 flex items-center justify-center text-slate-400 hover:text-white">
-                                <MessageSquare size={18} />
-                            </button>
+                        {/* Card 2: Leak */}
+                        <div className="bg-[#16181d] rounded-xl border border-slate-800 p-4 sm:p-6 relative group overflow-hidden shadow-lg shadow-red-900/5">
+                            <div className="absolute top-0 left-0 w-1 h-full bg-red-500"></div>
+                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 gap-2">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="bg-slate-800 text-slate-400 text-[10px] font-mono px-1.5 py-0.5 rounded border border-slate-700">#4925</span>
+                                    <span className="bg-red-500/10 text-red-500 text-[10px] font-bold px-2 py-0.5 rounded border border-red-500/20 uppercase tracking-wide flex items-center gap-1">
+                                        <AlertTriangle size={10} /> Emergency
+                                    </span>
+                                </div>
+                                <span className="text-xs text-slate-500">5m ago</span>
+                            </div>
+
+                            <h2 className="text-lg sm:text-xl font-bold text-white mb-2">Active Leak - Unit 4B</h2>
+                            <p className="text-sm text-slate-400 leading-relaxed mb-6">
+                                Tenant reports water pouring from ceiling fixture in master bath. Keywords matched: "Flood", "Water", "Emergency".
+                            </p>
+
+                            <div className="bg-[#1c212c] rounded-lg p-4 mb-6 border border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                <div>
+                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Vendor</p>
+                                    <p className="text-sm font-bold text-white">Rapid Fix Plumbing</p>
+                                </div>
+                                <div className="text-left sm:text-right">
+                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">AI Sentiment</p>
+                                    <p className="text-sm font-bold text-red-500">Critical</p>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row gap-3">
+                                <button className="flex-1 bg-red-600 hover:bg-red-500 text-white py-2.5 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-red-900/20">
+                                    <AlertTriangle size={16} /> Dispatch Now
+                                </button>
+                                <button className="flex-1 bg-[#1c212c] hover:bg-slate-800 border border-slate-700 text-white py-2.5 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2">
+                                    <MoreHorizontal size={16} /> Details
+                                </button>
+                            </div>
                         </div>
+
+                        {/* Card 3: Review */}
+                        <div className="bg-[#16181d] rounded-xl border border-slate-800 p-4 sm:p-6 relative group overflow-hidden opacity-75 hover:opacity-100 transition">
+                            <div className="absolute top-0 left-0 w-1 h-full bg-slate-500"></div>
+                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-2 gap-2">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="bg-slate-800 text-slate-400 text-[10px] font-mono px-1.5 py-0.5 rounded border border-slate-700">#4918</span>
+                                    <span className="bg-slate-700/50 text-slate-400 text-[10px] font-bold px-2 py-0.5 rounded border border-slate-600 uppercase tracking-wide">
+                                        Review
+                                    </span>
+                                </div>
+                                <span className="text-xs text-slate-500">1h ago</span>
+                            </div>
+
+                            <h2 className="text-base sm:text-lg font-bold text-slate-300 mb-2">Lobby Painting Quote</h2>
+                            <p className="text-sm text-slate-500 mb-4">Vendor submitted quote for repainting lobby entrance.</p>
+                            <button className="px-4 py-2 border border-slate-700 text-slate-400 text-xs font-bold rounded hover:bg-slate-800 hover:text-white transition">Review Quote</button>
+                        </div>
+
                     </div>
-
-                    {/* Card 2: Leak */}
-                    <div className="bg-[#16181d] rounded-xl border border-slate-800 p-6 relative group overflow-hidden shadow-lg shadow-red-900/5">
-                        <div className="absolute top-0 left-0 w-1 h-full bg-red-500"></div>
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="flex items-center gap-2">
-                                <span className="bg-slate-800 text-slate-400 text-[10px] font-mono px-1.5 py-0.5 rounded border border-slate-700">#4925</span>
-                                <span className="bg-red-500/10 text-red-500 text-[10px] font-bold px-2 py-0.5 rounded border border-red-500/20 uppercase tracking-wide flex items-center gap-1">
-                                    <AlertTriangle size={10} /> Emergency
-                                </span>
-                            </div>
-                            <span className="text-xs text-slate-500">5m ago</span>
-                        </div>
-
-                        <h2 className="text-xl font-bold text-white mb-2">Active Leak - Unit 4B</h2>
-                        <p className="text-sm text-slate-400 leading-relaxed mb-6">
-                            Tenant reports water pouring from ceiling fixture in master bath. Keywords matched: "Flood", "Water", "Emergency".
-                        </p>
-
-                        <div className="bg-[#1c212c] rounded-lg p-4 mb-6 border border-slate-800 flex justify-between items-center">
-                            <div>
-                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Vendor</p>
-                                <p className="text-sm font-bold text-white">Rapid Fix Plumbing</p>
-                            </div>
-                            <div className="text-right">
-                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">AI Sentiment</p>
-                                <p className="text-sm font-bold text-red-500">Critical</p>
-                            </div>
-                        </div>
-
-                        <div className="flex gap-3">
-                            <button className="flex-1 bg-red-600 hover:bg-red-500 text-white py-2.5 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-red-900/20">
-                                <AlertTriangle size={16} /> Dispatch Now
-                            </button>
-                            <button className="flex-1 bg-[#1c212c] hover:bg-slate-800 border border-slate-700 text-white py-2.5 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2">
-                                <MoreHorizontal size={16} /> Details
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Card 3: Review */}
-                    <div className="bg-[#16181d] rounded-xl border border-slate-800 p-6 relative group overflow-hidden opacity-75 hover:opacity-100 transition">
-                        <div className="absolute top-0 left-0 w-1 h-full bg-slate-500"></div>
-                        <div className="flex justify-between items-start mb-2">
-                            <div className="flex items-center gap-2">
-                                <span className="bg-slate-800 text-slate-400 text-[10px] font-mono px-1.5 py-0.5 rounded border border-slate-700">#4918</span>
-                                <span className="bg-slate-700/50 text-slate-400 text-[10px] font-bold px-2 py-0.5 rounded border border-slate-600 uppercase tracking-wide">
-                                    Review
-                                </span>
-                            </div>
-                            <span className="text-xs text-slate-500">1h ago</span>
-                        </div>
-
-                        <h2 className="text-lg font-bold text-slate-300 mb-2">Lobby Painting Quote</h2>
-                        <p className="text-sm text-slate-500 mb-4">Vendor submitted quote for repainting lobby entrance.</p>
-                        <button className="px-4 py-2 border border-slate-700 text-slate-400 text-xs font-bold rounded hover:bg-slate-800 hover:text-white transition">Review Quote</button>
-                    </div>
-
                 </div>
             </main>
 
             {/* 3. Right Sidebar - Utils */}
-            <aside className="w-80 bg-[#0f1116] flex flex-col p-6 shrink-0">
+            <aside className={`
+                ${mobileView === 'utils' ? 'flex' : 'hidden xl:flex'}
+                w-full xl:w-80 bg-[#0f1116] flex-col p-4 sm:p-6 shrink-0
+                fixed xl:relative inset-0 xl:inset-auto z-40 xl:z-auto overflow-y-auto
+            `}>
+                {/* Mobile Close Button */}
+                <div className="xl:hidden flex items-center justify-between mb-4 pb-4 border-b border-slate-800">
+                    <h2 className="text-white font-bold">Live Dispatch & Utils</h2>
+                    <button
+                        onClick={() => setMobileView('main')}
+                        className="p-2 hover:bg-slate-800 rounded text-slate-400"
+                    >
+                        <X size={20} />
+                    </button>
+                </div>
 
                 {/* Live Dispatch Map Widget */}
                 <div className="bg-[#16181d] rounded-xl border border-slate-800 p-1 mb-8">
@@ -298,6 +351,31 @@ export default function ManagerDashboard() {
                 </div>
 
             </aside>
+
+            {/* Mobile Bottom Navigation */}
+            <div className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#0f1116] border-t border-slate-800 flex items-center justify-around px-4 z-50">
+                <button
+                    onClick={() => setMobileView('nav')}
+                    className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-all ${mobileView === 'nav' ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}
+                >
+                    <MenuIcon size={20} />
+                    <span className="text-[10px] font-medium">Menu</span>
+                </button>
+                <button
+                    onClick={() => setMobileView('main')}
+                    className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-all ${mobileView === 'main' ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}
+                >
+                    <LayoutDashboard size={20} />
+                    <span className="text-[10px] font-medium">Queue</span>
+                </button>
+                <button
+                    onClick={() => setMobileView('utils')}
+                    className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-all ${mobileView === 'utils' ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}
+                >
+                    <MapPinIcon size={20} />
+                    <span className="text-[10px] font-medium">Live Map</span>
+                </button>
+            </div>
         </div>
     );
 }
