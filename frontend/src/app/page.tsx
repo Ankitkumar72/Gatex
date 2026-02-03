@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import FeatureCard from '@/components/FeatureCard';
@@ -32,9 +33,9 @@ export default function GateXLanding() {
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
-          <button className="bg-blue-600 hover:bg-blue-700 px-8 py-3 rounded-lg font-semibold transition w-full sm:w-auto">
+          <Link href="/signup" className="bg-blue-600 hover:bg-blue-700 px-8 py-3 rounded-lg font-semibold transition w-full sm:w-auto text-center">
             Start Free Trial
-          </button>
+          </Link>
           <button className="bg-white/5 hover:bg-white/10 border border-white/10 px-8 py-3 rounded-lg font-semibold flex items-center gap-2 transition w-full sm:w-auto justify-center">
             <Play size={16} fill="white" /> Watch Video
           </button>

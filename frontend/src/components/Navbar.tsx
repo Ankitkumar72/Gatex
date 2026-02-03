@@ -23,8 +23,8 @@ export default function Navbar() {
 
             <div className="hidden md:flex items-center gap-4">
                 <Link href="/login" className="px-4 py-2 text-sm text-slate-300 hover:text-white transition">Log in</Link>
-                <Link href="/get-started" className="px-4 py-2 text-sm font-semibold bg-blue-600 hover:bg-blue-500 rounded-lg text-white transition">
-                    Get Started
+                <Link href="/signup" className="px-4 py-2 text-sm font-semibold bg-blue-600 hover:bg-blue-500 rounded-lg text-white transition">
+                    Sign Up
                 </Link>
             </div>
 
@@ -47,8 +47,8 @@ export default function Navbar() {
                     </div>
                     <div className="flex flex-col items-center gap-4">
                         <Link href="/login" className="px-8 py-3 text-slate-300 hover:text-white transition" onClick={() => setIsOpen(false)}>Log in</Link>
-                        <Link href="/get-started" className="px-8 py-3 font-semibold bg-blue-600 hover:bg-blue-500 rounded-lg text-white transition" onClick={() => setIsOpen(false)}>
-                            Get Started
+                        <Link href="/signup" className="px-8 py-3 font-semibold bg-blue-600 hover:bg-blue-500 rounded-lg text-white transition" onClick={() => setIsOpen(false)}>
+                            Sign Up
                         </Link>
                     </div>
                 </div>
