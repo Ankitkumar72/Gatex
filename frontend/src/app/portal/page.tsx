@@ -5,11 +5,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
     Bot, User, Send, Paperclip, MoreHorizontal,
     MapPin, Clock, ShieldAlert, Phone, MessageSquare,
-    CheckCircle2, AlertTriangle, ArrowUpRight, Bell, Menu
+    CheckCircle2, AlertTriangle, ArrowUpRight, Bell, Menu, FileText
 } from 'lucide-react';
 import { api } from '@/lib/api';
 
 export default function TenantPortalWorkspace() {
+    // Mobile Tab State
+    const [mobileTab, setMobileTab] = useState<'chat' | 'details'>('chat');
+
     // Chat State
     const [messages, setMessages] = useState([
         { id: '1', role: 'agent', content: 'Hello Alex. I noticed you started a new request ticket. How can I help with your unit today?', time: '10:42 AM' }
@@ -33,7 +36,7 @@ export default function TenantPortalWorkspace() {
 
     useEffect(() => {
         scrollToBottom();
-    }, [messages]);
+    }, [messages, mobileTab]); // Scroll on tab switch too
 
     const handleSend = async () => {
         if (!input.trim()) return;
@@ -80,13 +83,13 @@ export default function TenantPortalWorkspace() {
     };
 
     return (
-        <div className="min-h-screen bg-[#000000] text-slate-300 font-sans flex flex-col h-screen">
+        <div className="min-h-screen bg-[#000000] text-slate-300 font-sans flex flex-col h-screen overflow-hidden">
 
             {/* Top Header */}
-            <header className="h-14 border-b border-slate-800 bg-[#0f1116] flex items-center justify-between px-4 shrink-0">
+            <header className="h-14 border-b border-slate-800 bg-[#0f1116] flex items-center justify-between px-4 shrink-0 z-20">
                 <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white font-bold">G</div>
-                    <span className="font-semibold text-white tracking-tight">GateX <span className="text-slate-500 font-normal">Workspace</span></span>
+                    <span className="font-semibold text-white tracking-tight">GateX <span className="hidden md:inline text-slate-500 font-normal">Workspace</span></span>
                 </div>
                 <div className="flex items-center gap-4">
                     <Bell size={18} className="text-slate-400" />
@@ -101,11 +104,15 @@ export default function TenantPortalWorkspace() {
             </header>
 
             {/* Main Workspace Layout */}
-            <div className="flex-1 flex overflow-hidden">
+            <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
 
                 {/* LEFT PANEL: Chat / AI Assistant */}
-                <div className="w-1/3 min-w-[350px] border-r border-slate-800 bg-[#0a0b0f] flex flex-col">
-                    <div className="h-14 border-b border-slate-800 flex items-center justify-between px-4 bg-[#0f1116]">
+                {/* Visible if tab is 'chat' OR we are on desktop (> md) */}
+                <div className={`
+                    ${mobileTab === 'chat' ? 'flex' : 'hidden md:flex'}
+                    w-full md:w-1/3 md:min-w-[350px] border-r border-slate-800 bg-[#0a0b0f] flex-col h-full
+                `}>
+                    <div className="h-14 border-b border-slate-800 flex items-center justify-between px-4 bg-[#0f1116] shrink-0">
                         <div className="flex items-center gap-2">
                             <div className="w-2 h-2 rounded-full bg-green-500"></div>
                             <span className="text-sm font-semibold text-white">AI Maintenance Assistant</span>
@@ -115,7 +122,7 @@ export default function TenantPortalWorkspace() {
                         </button>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto p-4 space-y-6">
+                    <div className="flex-1 overflow-y-auto p-4 space-y-6 pb-24 md:pb-4">
                         <div className="flex justify-center">
                             <span className="text-[10px] font-bold text-slate-600 bg-slate-900/50 px-2 py-1 rounded">TODAY, 10:42 AM</span>
                         </div>
@@ -147,14 +154,8 @@ export default function TenantPortalWorkspace() {
                         <div ref={messagesEndRef} />
                     </div>
 
-                    {/* Input Area */}
-                    <div className="p-4 border-t border-slate-800 bg-[#0f1116]">
-                        {/* File Upload Placeholder */}
-                        <div className="mb-2 flex gap-2 overflow-x-auto">
-                            {/* <div className="h-16 w-32 bg-[#1c212c] rounded-lg border border-slate-700 flex items-center justify-center gap-2">
-                        <span className="text-xs text-slate-400">Scanning... 72%</span>
-                     </div> */}
-                        </div>
+                    {/* Input Area - Fixed at bottom of chat panel */}
+                    <div className="p-4 border-t border-slate-800 bg-[#0f1116] shrink-0 mb-16 md:mb-0">
                         <div className="relative">
                             <input
                                 className="w-full bg-[#1c212c] border border-slate-700 rounded-xl pl-4 pr-12 py-3 text-sm text-white focus:outline-none focus:border-blue-500 placeholder:text-slate-600"
@@ -170,17 +171,21 @@ export default function TenantPortalWorkspace() {
                                 <ArrowUpRight size={16} />
                             </button>
                         </div>
-                        <div className="flex gap-2 mt-3">
-                            <button className="px-3 py-1.5 rounded-full bg-[#1c212c] border border-slate-700 text-xs text-slate-400 hover:text-white hover:border-slate-500 transition">No visible damage</button>
-                            <button className="px-3 py-1.5 rounded-full bg-[#1c212c] border border-slate-700 text-xs text-slate-400 hover:text-white hover:border-slate-500 transition">It's urgent</button>
+                        <div className="flex gap-2 mt-3 overflow-x-auto no-scrollbar">
+                            <button className="whitespace-nowrap px-3 py-1.5 rounded-full bg-[#1c212c] border border-slate-700 text-xs text-slate-400 hover:text-white hover:border-slate-500 transition">No visible damage</button>
+                            <button className="whitespace-nowrap px-3 py-1.5 rounded-full bg-[#1c212c] border border-slate-700 text-xs text-slate-400 hover:text-white hover:border-slate-500 transition">It's urgent</button>
                         </div>
                     </div>
                 </div>
 
                 {/* RIGHT PANEL: Request Details */}
-                <div className="flex-1 bg-[#0f1116] flex flex-col min-w-[500px]">
+                {/* Visible if tab is 'details' OR we are on desktop (> md) */}
+                <div className={`
+                    ${mobileTab === 'details' ? 'flex' : 'hidden md:flex'}
+                    w-full md:flex-1 bg-[#0f1116] flex-col h-full overflow-hidden
+                `}>
                     {/* Header */}
-                    <div className="h-14 border-b border-slate-800 flex items-center justify-between px-6 bg-[#0f1116]">
+                    <div className="h-14 border-b border-slate-800 flex items-center justify-between px-6 bg-[#0f1116] shrink-0">
                         <div className="flex items-center gap-3">
                             <span className="text-lg font-bold text-white">Request #4092</span>
                             <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-500 border border-blue-500/20 uppercase tracking-wide">{ticketState.status}</span>
@@ -190,7 +195,7 @@ export default function TenantPortalWorkspace() {
                         </div>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto p-6">
+                    <div className="flex-1 overflow-y-auto p-4 md:p-6 pb-24 md:pb-6">
 
                         {/* Main Card */}
                         <div className="bg-[#12141a] border border-slate-800 rounded-xl p-6 mb-8 relative overflow-hidden">
@@ -211,7 +216,7 @@ export default function TenantPortalWorkspace() {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="bg-[#1c212c] p-4 rounded-lg border border-slate-800">
                                     <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider block mb-2">System Category</span>
                                     <div className="flex items-center gap-2 text-white">
@@ -310,8 +315,8 @@ export default function TenantPortalWorkspace() {
 
                     </div>
 
-                    {/* Footer Actions */}
-                    <div className="h-16 border-t border-slate-800 bg-[#0f1116] flex items-center justify-between px-6 shrink-0">
+                    {/* Footer Actions - Desktop Only (Hidden on mobile as it takes too much space, or we can adapt it) */}
+                    <div className="hidden md:flex h-16 border-t border-slate-800 bg-[#0f1116] items-center justify-between px-6 shrink-0">
                         <div className="text-xs text-white">
                             <span className="text-slate-500 block">STATUS</span>
                             Updated just now
@@ -322,6 +327,24 @@ export default function TenantPortalWorkspace() {
                             <button className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-sm text-white transition font-semibold">Add Note</button>
                         </div>
                     </div>
+                </div>
+
+                {/* Mobile Bottom Navigation */}
+                <div className="md:hidden absolute bottom-0 left-0 right-0 h-16 bg-[#0f1116] border-t border-slate-800 flex items-center justify-around px-4 z-50">
+                    <button
+                        onClick={() => setMobileTab('chat')}
+                        className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-all ${mobileTab === 'chat' ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}
+                    >
+                        <Bot size={20} />
+                        <span className="text-[10px] font-medium">Assistant</span>
+                    </button>
+                    <button
+                        onClick={() => setMobileTab('details')}
+                        className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-all ${mobileTab === 'details' ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}
+                    >
+                        <FileText size={20} />
+                        <span className="text-[10px] font-medium">Details</span>
+                    </button>
                 </div>
 
             </div>
