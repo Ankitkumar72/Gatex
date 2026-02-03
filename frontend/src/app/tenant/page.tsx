@@ -5,7 +5,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
     Bot, User, Send, Paperclip, MoreHorizontal,
     MapPin, Clock, ShieldAlert, Phone, MessageSquare,
-    CheckCircle2, AlertTriangle, ArrowUpRight, Bell, Menu, FileText, X, Info
+    CheckCircle2, AlertTriangle, ArrowUpRight, Bell, Menu, FileText, X, Info, StickyNote, Plus
 } from 'lucide-react';
 import { api } from '@/lib/api';
 
@@ -32,6 +32,22 @@ export default function TenantPortalWorkspace() {
         status: 'In Progress',
         eta: 'Pending Analysis'
     });
+
+    // Notes State
+    const [noteInput, setNoteInput] = useState('');
+    const [notes, setNotes] = useState<{ id: string; content: string; time: string }[]>([]);
+
+    const handleAddNote = () => {
+        if (!noteInput.trim()) return;
+        const newNote = {
+            id: Date.now().toString(),
+            content: noteInput,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+        setNotes(prev => [newNote, ...prev]);
+        setNoteInput('');
+        showToast('Note added successfully!');
+    };
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -354,6 +370,79 @@ export default function TenantPortalWorkspace() {
                             </div>
                         </div>
 
+                        {/* Access Details & Notes Section */}
+                        <div className="mt-8">
+                            <div className="flex justify-between items-end mb-4">
+                                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div> Access Details & Notes
+                                </h3>
+                                <span className="text-[10px] text-slate-600">For Technician</span>
+                            </div>
+
+                            {/* Note Input */}
+                            <div className="bg-[#12141a] border border-slate-800 rounded-xl p-4 mb-4">
+                                <label className="text-xs text-slate-400 mb-2 block">Gate Code, Access Instructions, or Important Details</label>
+                                <div className="relative">
+                                    <textarea
+                                        value={noteInput}
+                                        onChange={(e) => setNoteInput(e.target.value)}
+                                        placeholder="e.g., Gate code is #4523. Use side entrance. Dog is friendly."
+                                        className="w-full bg-[#1c212c] border border-slate-700 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-blue-500 placeholder:text-slate-600 resize-none min-h-[80px]"
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                                                handleAddNote();
+                                            }
+                                        }}
+                                    />
+                                </div>
+                                <div className="flex justify-between items-center mt-3">
+                                    <span className="text-xs text-slate-600">Click " Add Note " button to submit</span>
+                                    <button
+                                        onClick={handleAddNote}
+                                        disabled={!noteInput.trim()}
+                                        className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed text-sm text-white transition font-semibold flex items-center gap-2"
+                                    >
+                                        <Plus size={14} /> Add Note
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Display Notes */}
+                            {notes.length > 0 && (
+                                <div className="space-y-3">
+                                    {notes.map((note) => (
+                                        <div key={note.id} className="bg-[#12141a] border border-slate-800 rounded-lg p-4 flex gap-3">
+                                            <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center text-green-500 flex-shrink-0">
+                                                <StickyNote size={16} />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm text-white leading-relaxed break-words">{note.content}</p>
+                                                <span className="text-[10px] text-slate-500 font-mono mt-2 block">{note.time}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                    </div>
+
+                    {/* Mobile Actions - Visible only on mobile */}
+                    <div className="md:hidden border-t border-slate-800 bg-[#0f1116] px-4 py-3 pb-20">
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => showToast('Message sent to Property Manager')}
+                                className="flex-1 px-3 py-2 rounded-lg bg-[#1c212c] hover:bg-slate-800 border border-slate-700 text-xs text-white transition flex items-center justify-center gap-1.5"
+                            >
+                                <MessageSquare size={14} /> Contact Manager
+                            </button>
+                            <button
+                                onClick={() => showToast('Cancellation request submitted')}
+                                className="flex-1 px-3 py-2 rounded-lg bg-[#1c212c] hover:bg-red-900/20 border border-slate-700 text-xs text-red-400 hover:text-red-300 transition flex items-center justify-center gap-1.5"
+                            >
+                                <X size={14} /> Cancel
+                            </button>
+                        </div>
                     </div>
 
                     {/* Footer Actions - Desktop Only (Hidden on mobile as it takes too much space, or we can adapt it) */}
@@ -374,12 +463,6 @@ export default function TenantPortalWorkspace() {
                                 className="px-4 py-2 rounded-lg bg-[#1c212c] hover:bg-red-900/20 border border-slate-700 text-sm text-red-400 hover:text-red-300 transition"
                             >
                                 Cancel Request
-                            </button>
-                            <button
-                                onClick={() => showToast('Note added to ticket')}
-                                className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-sm text-white transition font-semibold"
-                            >
-                                Add Note
                             </button>
                         </div>
                     </div>
@@ -407,3 +490,4 @@ export default function TenantPortalWorkspace() {
         </div>
     );
 }
+
