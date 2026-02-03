@@ -5,13 +5,16 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
     Bot, User, Send, Paperclip, MoreHorizontal,
     MapPin, Clock, ShieldAlert, Phone, MessageSquare,
-    CheckCircle2, AlertTriangle, ArrowUpRight, Bell, Menu, FileText
+    CheckCircle2, AlertTriangle, ArrowUpRight, Bell, Menu, FileText, X, Info
 } from 'lucide-react';
 import { api } from '@/lib/api';
 
 export default function TenantPortalWorkspace() {
     // Mobile Tab State
     const [mobileTab, setMobileTab] = useState<'chat' | 'details'>('chat');
+
+    // Toast State
+    const [toast, setToast] = useState<{ message: string; visible: boolean }>({ message: '', visible: false });
 
     // Chat State
     const [messages, setMessages] = useState([
@@ -36,7 +39,23 @@ export default function TenantPortalWorkspace() {
 
     useEffect(() => {
         scrollToBottom();
-    }, [messages, mobileTab]); // Scroll on tab switch too
+    }, [messages, mobileTab]);
+
+    // Toast Helper
+    const showToast = (message: string) => {
+        setToast({ message, visible: true });
+        setTimeout(() => setToast(prev => ({ ...prev, visible: false })), 3000);
+    };
+
+    // Button Handlers
+    const handleReset = () => {
+        setMessages([{ id: '1', role: 'agent', content: 'Hello Alex. I noticed you started a new request ticket. How can I help with your unit today?', time: '10:42 AM' }]);
+        showToast('Chat history has been reset.');
+    };
+
+    const handleQuickReply = (text: string) => {
+        setInput(text);
+    };
 
     const handleSend = async () => {
         if (!input.trim()) return;
@@ -57,10 +76,8 @@ export default function TenantPortalWorkspace() {
             };
             setMessages(prev => [...prev, agentMsg]);
 
-            // Update Ticket State from Backend Logic
             if (response.final_state) {
                 const state = response.final_state;
-
                 setTicketState(prev => ({
                     ...prev,
                     priority: state.classification === 'emergency' ? 'High' :
@@ -68,7 +85,6 @@ export default function TenantPortalWorkspace() {
                     category: state.maintenance_category ?
                         state.maintenance_category.charAt(0).toUpperCase() + state.maintenance_category.slice(1) + ' System'
                         : prev.category,
-                    // Simple title heuristic if we just got a category
                     title: state.maintenance_category ?
                         `${state.maintenance_category.charAt(0).toUpperCase() + state.maintenance_category.slice(1)} Issue`
                         : prev.title
@@ -83,7 +99,15 @@ export default function TenantPortalWorkspace() {
     };
 
     return (
-        <div className="min-h-screen bg-[#000000] text-slate-300 font-sans flex flex-col h-screen overflow-hidden">
+        <div className="min-h-screen bg-[#000000] text-slate-300 font-sans flex flex-col h-screen overflow-hidden relative">
+
+            {/* Toast Notification */}
+            <div className={`fixed top-20 left-1/2 -translate-x-1/2 z-[100] transition-all duration-300 ${toast.visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}`}>
+                <div className="bg-[#1c212c] border border-blue-500/30 text-white px-4 py-2.5 rounded-full shadow-2xl flex items-center gap-3 backdrop-blur-md">
+                    <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+                    <span className="text-sm font-medium">{toast.message}</span>
+                </div>
+            </div>
 
             {/* Top Header */}
             <header className="h-14 border-b border-slate-800 bg-[#0f1116] flex items-center justify-between px-4 shrink-0 z-20">
@@ -92,13 +116,13 @@ export default function TenantPortalWorkspace() {
                     <span className="font-semibold text-white tracking-tight">GateX <span className="hidden md:inline text-slate-500 font-normal">Workspace</span></span>
                 </div>
                 <div className="flex items-center gap-4">
-                    <Bell size={18} className="text-slate-400" />
+                    <Bell size={18} className="text-slate-400 hover:text-white cursor-pointer transition-colors" onClick={() => showToast('No new notifications')} />
                     <div className="flex items-center gap-2">
                         <div className="text-right hidden md:block">
                             <p className="text-sm text-white leading-none">Alex Morgan</p>
                             <p className="text-[10px] text-slate-500">Tenant • Unit 402</p>
                         </div>
-                        <div className="w-8 h-8 rounded-full bg-slate-700"></div>
+                        <div className="w-8 h-8 rounded-full bg-slate-700 cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all" onClick={() => showToast('Profile settings coming soon')}></div>
                     </div>
                 </div>
             </header>
@@ -107,7 +131,6 @@ export default function TenantPortalWorkspace() {
             <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
 
                 {/* LEFT PANEL: Chat / AI Assistant */}
-                {/* Visible if tab is 'chat' OR we are on desktop (> md) */}
                 <div className={`
                     ${mobileTab === 'chat' ? 'flex' : 'hidden md:flex'}
                     w-full md:w-1/3 md:min-w-[350px] border-r border-slate-800 bg-[#0a0b0f] flex-col h-full
@@ -117,7 +140,10 @@ export default function TenantPortalWorkspace() {
                             <div className="w-2 h-2 rounded-full bg-green-500"></div>
                             <span className="text-sm font-semibold text-white">AI Maintenance Assistant</span>
                         </div>
-                        <button className="text-xs text-slate-500 hover:text-white flex items-center gap-1">
+                        <button
+                            onClick={handleReset}
+                            className="text-xs text-slate-500 hover:text-white flex items-center gap-1 transition-colors"
+                        >
                             <span className="material-icons">refresh</span> Reset
                         </button>
                     </div>
@@ -154,7 +180,7 @@ export default function TenantPortalWorkspace() {
                         <div ref={messagesEndRef} />
                     </div>
 
-                    {/* Input Area - Fixed at bottom of chat panel */}
+                    {/* Input Area */}
                     <div className="p-4 border-t border-slate-800 bg-[#0f1116] shrink-0 mb-16 md:mb-0">
                         <div className="relative">
                             <input
@@ -172,14 +198,23 @@ export default function TenantPortalWorkspace() {
                             </button>
                         </div>
                         <div className="flex gap-2 mt-3 overflow-x-auto no-scrollbar">
-                            <button className="whitespace-nowrap px-3 py-1.5 rounded-full bg-[#1c212c] border border-slate-700 text-xs text-slate-400 hover:text-white hover:border-slate-500 transition">No visible damage</button>
-                            <button className="whitespace-nowrap px-3 py-1.5 rounded-full bg-[#1c212c] border border-slate-700 text-xs text-slate-400 hover:text-white hover:border-slate-500 transition">It's urgent</button>
+                            <button
+                                onClick={() => handleQuickReply("No visible damage")}
+                                className="whitespace-nowrap px-3 py-1.5 rounded-full bg-[#1c212c] border border-slate-700 text-xs text-slate-400 hover:text-white hover:border-slate-500 transition"
+                            >
+                                No visible damage
+                            </button>
+                            <button
+                                onClick={() => handleQuickReply("It's urgent")}
+                                className="whitespace-nowrap px-3 py-1.5 rounded-full bg-[#1c212c] border border-slate-700 text-xs text-slate-400 hover:text-white hover:border-slate-500 transition"
+                            >
+                                It's urgent
+                            </button>
                         </div>
                     </div>
                 </div>
 
                 {/* RIGHT PANEL: Request Details */}
-                {/* Visible if tab is 'details' OR we are on desktop (> md) */}
                 <div className={`
                     ${mobileTab === 'details' ? 'flex' : 'hidden md:flex'}
                     w-full md:flex-1 bg-[#0f1116] flex-col h-full overflow-hidden
@@ -191,7 +226,7 @@ export default function TenantPortalWorkspace() {
                             <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-500 border border-blue-500/20 uppercase tracking-wide">{ticketState.status}</span>
                         </div>
                         <div className="flex gap-2 text-slate-400">
-                            <MoreHorizontal size={20} className="hover:text-white cursor-pointer" />
+                            <MoreHorizontal size={20} className="hover:text-white cursor-pointer" onClick={() => showToast('Menu options coming soon')} />
                         </div>
                     </div>
 
@@ -276,10 +311,16 @@ export default function TenantPortalWorkspace() {
                                         </div>
 
                                         <div className="flex gap-2">
-                                            <button className="flex-1 py-1.5 rounded bg-[#1c212c] hover:bg-slate-800 border border-slate-700 text-xs text-white transition flex items-center justify-center gap-2">
+                                            <button
+                                                onClick={() => showToast('Calling Technician...')}
+                                                className="flex-1 py-1.5 rounded bg-[#1c212c] hover:bg-slate-800 border border-slate-700 text-xs text-white transition flex items-center justify-center gap-2"
+                                            >
                                                 <Phone size={12} /> Call Tech
                                             </button>
-                                            <button className="flex-1 py-1.5 rounded bg-[#1c212c] hover:bg-slate-800 border border-slate-700 text-xs text-white transition flex items-center justify-center gap-2">
+                                            <button
+                                                onClick={() => showToast('Opening secure message channel...')}
+                                                className="flex-1 py-1.5 rounded bg-[#1c212c] hover:bg-slate-800 border border-slate-700 text-xs text-white transition flex items-center justify-center gap-2"
+                                            >
                                                 <MessageSquare size={12} /> Message
                                             </button>
                                         </div>
@@ -322,9 +363,24 @@ export default function TenantPortalWorkspace() {
                             Updated just now
                         </div>
                         <div className="flex gap-3">
-                            <button className="px-4 py-2 rounded-lg bg-[#1c212c] hover:bg-slate-800 border border-slate-700 text-sm text-white transition">Contact Manager</button>
-                            <button className="px-4 py-2 rounded-lg bg-[#1c212c] hover:bg-red-900/20 border border-slate-700 text-sm text-red-400 hover:text-red-300 transition">Cancel Request</button>
-                            <button className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-sm text-white transition font-semibold">Add Note</button>
+                            <button
+                                onClick={() => showToast('Message sent to Property Manager')}
+                                className="px-4 py-2 rounded-lg bg-[#1c212c] hover:bg-slate-800 border border-slate-700 text-sm text-white transition"
+                            >
+                                Contact Manager
+                            </button>
+                            <button
+                                onClick={() => showToast('Cancellation request submitted')}
+                                className="px-4 py-2 rounded-lg bg-[#1c212c] hover:bg-red-900/20 border border-slate-700 text-sm text-red-400 hover:text-red-300 transition"
+                            >
+                                Cancel Request
+                            </button>
+                            <button
+                                onClick={() => showToast('Note added to ticket')}
+                                className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-sm text-white transition font-semibold"
+                            >
+                                Add Note
+                            </button>
                         </div>
                     </div>
                 </div>

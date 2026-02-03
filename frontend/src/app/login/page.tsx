@@ -38,8 +38,8 @@ function LoginForm() {
         setLoading(true);
         // Simulate network delay for effect
         setTimeout(() => {
-            if (activeRole === 'tenant') router.push('/portal');
-            if (activeRole === 'manager') router.push('/dashboard');
+            if (activeRole === 'tenant') router.push('/tenant');
+            if (activeRole === 'manager') router.push('/manager');
             if (activeRole === 'tech') router.push('/technician');
         }, 800);
     };

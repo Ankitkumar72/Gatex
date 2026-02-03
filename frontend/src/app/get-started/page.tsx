@@ -25,7 +25,7 @@ export default function GetStartedPage() {
     const handleLaunch = () => {
         setLoading(true);
         setTimeout(() => {
-            router.push('/dashboard');
+            router.push('/manager');
         }, 1500);
     };
 

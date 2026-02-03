@@ -60,7 +60,7 @@ export default function ArchivePage() {
                         </div>
                     </div>
                     <div className="hidden md:flex items-center gap-8 text-sm font-medium">
-                        <a href="#" className="text-slate-400 hover:text-white transition">Dashboard</a>
+                        <a href="/tenant" className="text-slate-400 hover:text-white transition">Dashboard</a>
                         <a href="#" className="text-slate-400 hover:text-white transition">Active Requests</a>
                         <a href="#" className="text-green-500 border-b-2 border-green-500 py-5">Archive</a>
                         <a href="#" className="text-slate-400 hover:text-white transition">Settings</a>
