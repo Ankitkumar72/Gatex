@@ -10,8 +10,28 @@ export default function ManagerDashboard() {
     // Mobile view state: 'main', 'nav', 'utils'
     const [mobileView, setMobileView] = useState<'main' | 'nav' | 'utils'>('main');
 
+    // Toast State
+    const [toast, setToast] = useState<{ message: string; visible: boolean }>({ message: '', visible: false });
+
+    // Filter State
+    const [activeFilter, setActiveFilter] = useState<'all' | 'highcost' | 'emergency'>('all');
+
+    // Toast Helper
+    const showToast = (message: string) => {
+        setToast({ message, visible: true });
+        setTimeout(() => setToast(prev => ({ ...prev, visible: false })), 3000);
+    };
+
     return (
         <div className="flex bg-[#0b0c10] text-slate-300 font-sans min-h-screen relative">
+
+            {/* Toast Notification */}
+            <div className={`fixed top-20 left-1/2 -translate-x-1/2 z-[100] transition-all duration-300 ${toast.visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}`}>
+                <div className="bg-[#1c212c] border border-blue-500/30 text-white px-4 py-2.5 rounded-full shadow-2xl flex items-center gap-3 backdrop-blur-md">
+                    <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+                    <span className="text-sm font-medium">{toast.message}</span>
+                </div>
+            </div>
 
             {/* 1. Left Sidebar - Hidden on mobile, shown via state */}
             <aside className={`
@@ -41,11 +61,11 @@ export default function ManagerDashboard() {
                 <div className="px-5 py-2 flex-1 overflow-y-auto">
                     <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-3">Menu</p>
                     <nav className="space-y-1">
-                        <NavItem icon={<LayoutDashboard size={18} />} label="Dashboard" active />
-                        <NavItem icon={<Building2 size={18} />} label="Properties" />
-                        <NavItem icon={<Wrench size={18} />} label="Work Orders" badge="14" />
-                        <NavItem icon={<DollarSign size={18} />} label="Finance" />
-                        <NavItem icon={<Users size={18} />} label="Users" />
+                        <NavItem icon={<LayoutDashboard size={18} />} label="Dashboard" active onClick={() => showToast('Dashboard view')} />
+                        <NavItem icon={<Building2 size={18} />} label="Properties" onClick={() => showToast('Navigating to Properties...')} />
+                        <NavItem icon={<Wrench size={18} />} label="Work Orders" badge="14" onClick={() => showToast('Opening Work Orders (14 active)')} />
+                        <NavItem icon={<DollarSign size={18} />} label="Finance" onClick={() => showToast('Loading Finance dashboard...')} />
+                        <NavItem icon={<Users size={18} />} label="Users" onClick={() => showToast('Opening User Management...')} />
                     </nav>
 
                     <div className="mt-6">
@@ -85,7 +105,7 @@ export default function ManagerDashboard() {
                             <p className="text-sm font-bold text-white leading-none truncate">Alex Morgan</p>
                             <p className="text-[10px] text-slate-500">Lead Manager</p>
                         </div>
-                        <Settings size={16} className="text-slate-500 hover:text-white flex-shrink-0" />
+                        <Settings size={16} className="text-slate-500 hover:text-white flex-shrink-0 cursor-pointer" onClick={() => showToast('Opening Settings...')} />
                     </div>
                 </div>
             </aside>
@@ -118,9 +138,18 @@ export default function ManagerDashboard() {
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
                             <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">HITL Priority Queue</h1>
                             <div className="flex bg-[#1c212c] rounded-lg p-1 border border-slate-800 w-full sm:w-auto">
-                                <button className="flex-1 sm:flex-initial px-3 py-1 bg-slate-700 text-white text-xs font-bold rounded shadow-sm">All</button>
-                                <button className="flex-1 sm:flex-initial px-3 py-1 text-slate-500 hover:text-white text-xs font-bold rounded transition">High Cost</button>
-                                <button className="flex-1 sm:flex-initial px-3 py-1 text-slate-500 hover:text-white text-xs font-bold rounded transition">Emergency</button>
+                                <button
+                                    onClick={() => { setActiveFilter('all'); showToast('Filter: All Tickets'); }}
+                                    className={`flex-1 sm:flex-initial px-3 py-1 text-xs font-bold rounded transition ${activeFilter === 'all' ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-500 hover:text-white'}`}
+                                >All</button>
+                                <button
+                                    onClick={() => { setActiveFilter('highcost'); showToast('Filter: High Cost Only'); }}
+                                    className={`flex-1 sm:flex-initial px-3 py-1 text-xs font-bold rounded transition ${activeFilter === 'highcost' ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-500 hover:text-white'}`}
+                                >High Cost</button>
+                                <button
+                                    onClick={() => { setActiveFilter('emergency'); showToast('Filter: Emergency Only'); }}
+                                    className={`flex-1 sm:flex-initial px-3 py-1 text-xs font-bold rounded transition ${activeFilter === 'emergency' ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-500 hover:text-white'}`}
+                                >Emergency</button>
                             </div>
                         </div>
                         <p className="text-slate-500 text-sm mb-6">Human-in-the-Loop review for high-risk tickets.</p>
@@ -167,13 +196,22 @@ export default function ManagerDashboard() {
                             </div>
 
                             <div className="flex flex-col sm:flex-row gap-3">
-                                <button className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2.5 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2">
+                                <button
+                                    onClick={() => showToast('Ticket #4920 Approved! Quote authorized.')}
+                                    className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2.5 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2"
+                                >
                                     <Check size={16} /> Approve
                                 </button>
-                                <button className="flex-1 bg-[#1c212c] hover:bg-slate-800 border border-slate-700 text-white py-2.5 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2">
+                                <button
+                                    onClick={() => showToast('Ticket #4920 Rejected. Technician notified.')}
+                                    className="flex-1 bg-[#1c212c] hover:bg-slate-800 border border-slate-700 text-white py-2.5 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2"
+                                >
                                     <X size={16} /> Reject
                                 </button>
-                                <button className="w-full sm:w-10 h-10 rounded-lg border border-slate-700 flex items-center justify-center text-slate-400 hover:text-white">
+                                <button
+                                    onClick={() => showToast('Opening chat with technician...')}
+                                    className="w-full sm:w-10 h-10 rounded-lg border border-slate-700 flex items-center justify-center text-slate-400 hover:text-white"
+                                >
                                     <MessageSquare size={18} />
                                 </button>
                             </div>
@@ -209,10 +247,16 @@ export default function ManagerDashboard() {
                             </div>
 
                             <div className="flex flex-col sm:flex-row gap-3">
-                                <button className="flex-1 bg-red-600 hover:bg-red-500 text-white py-2.5 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-red-900/20">
+                                <button
+                                    onClick={() => showToast('⚠️ EMERGENCY: Rapid Fix Plumbing dispatched to Unit 4B!')}
+                                    className="flex-1 bg-red-600 hover:bg-red-500 text-white py-2.5 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-red-900/20"
+                                >
                                     <AlertTriangle size={16} /> Dispatch Now
                                 </button>
-                                <button className="flex-1 bg-[#1c212c] hover:bg-slate-800 border border-slate-700 text-white py-2.5 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2">
+                                <button
+                                    onClick={() => showToast('Loading full ticket details...')}
+                                    className="flex-1 bg-[#1c212c] hover:bg-slate-800 border border-slate-700 text-white py-2.5 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2"
+                                >
                                     <MoreHorizontal size={16} /> Details
                                 </button>
                             </div>
@@ -233,7 +277,10 @@ export default function ManagerDashboard() {
 
                             <h2 className="text-base sm:text-lg font-bold text-slate-300 mb-2">Lobby Painting Quote</h2>
                             <p className="text-sm text-slate-500 mb-4">Vendor submitted quote for repainting lobby entrance.</p>
-                            <button className="px-4 py-2 border border-slate-700 text-slate-400 text-xs font-bold rounded hover:bg-slate-800 hover:text-white transition">Review Quote</button>
+                            <button
+                                onClick={() => showToast('Opening quote review for Ticket #4918...')}
+                                className="px-4 py-2 border border-slate-700 text-slate-400 text-xs font-bold rounded hover:bg-slate-800 hover:text-white transition"
+                            >Review Quote</button>
                         </div>
 
                     </div>
@@ -279,7 +326,7 @@ export default function ManagerDashboard() {
                             <p className="text-[10px] text-slate-500 font-bold uppercase">Active Techs</p>
                             <p className="text-xl font-bold text-white">12</p>
                         </div>
-                        <Maximize2 size={14} className="text-slate-500 hover:text-white cursor-pointer" />
+                        <Maximize2 size={14} className="text-slate-500 hover:text-white cursor-pointer" onClick={() => showToast('Expanding live dispatch map...')} />
                     </div>
                 </div>
 
@@ -287,7 +334,7 @@ export default function ManagerDashboard() {
                 <div className="mb-8">
                     <div className="flex justify-between items-center mb-3">
                         <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Vendor Performance</h3>
-                        <a href="#" className="text-xs text-blue-500 hover:text-white">View Report</a>
+                        <button onClick={() => showToast('Loading vendor performance report...')} className="text-xs text-blue-500 hover:text-white">View Report</button>
                     </div>
                     <div className="bg-[#16181d] rounded-xl border border-slate-800 p-4">
                         <div className="flex items-start gap-3 mb-4">
@@ -381,8 +428,8 @@ export default function ManagerDashboard() {
 }
 
 // Sub-Components
-const NavItem = ({ icon, label, active, badge }: any) => (
-    <div className={`flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition-colors ${active ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}>
+const NavItem = ({ icon, label, active, badge, onClick }: any) => (
+    <div onClick={onClick} className={`flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition-colors ${active ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}>
         <div className="flex items-center gap-3">
             {icon}
             <span className="text-sm font-medium">{label}</span>
