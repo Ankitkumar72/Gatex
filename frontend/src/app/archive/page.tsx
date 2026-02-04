@@ -1,46 +1,47 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import {
     Calendar, ChevronDown, Filter, Search, MoreHorizontal,
     ArrowUpRight, Clock, CheckCircle2, AlertTriangle, FileText,
-    Camera, Bell, User, Zap, Droplets, Wrench, Box
+    Camera, Bell, User, Zap, Droplets, Wrench, Box, ArrowLeft
 } from 'lucide-react';
 
 export default function ArchivePage() {
     const [filterStatus, setFilterStatus] = useState('All');
 
-    // Mock Data based on Screenshot
+    // Mock Data
     const requests = [
         {
             id: 'REQ-2049', date: 'Oct 12, 2023', category: 'Plumbing Leak',
             icon: Droplets, evidence: '/api/placeholder/40/40', status: 'Resolved',
-            statusColor: 'text-green-500 bg-green-500/10 border-green-500/20'
+            statusColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
         },
         {
             id: 'REQ-2048', date: 'Sep 01, 2023', category: 'HVAC Noise',
             icon: Box, evidence: '/api/placeholder/40/40', status: 'Cancelled',
-            statusColor: 'text-red-500 bg-red-500/10 border-red-500/20'
+            statusColor: 'text-red-400 bg-red-500/10 border-red-500/20'
         },
         {
             id: 'REQ-2045', date: 'Aug 15, 2023', category: 'Electrical Fault',
             icon: Zap, evidence: '/api/placeholder/40/40', status: 'Resolved',
-            statusColor: 'text-green-500 bg-green-500/10 border-green-500/20'
+            statusColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
         },
         {
             id: 'REQ-2032', date: 'Jul 22, 2023', category: 'Appliance Repair',
             icon: Wrench, evidence: '/api/placeholder/40/40', status: 'Resolved',
-            statusColor: 'text-green-500 bg-green-500/10 border-green-500/20'
+            statusColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
         },
         {
             id: 'REQ-2010', date: 'Jun 05, 2023', category: 'General Maintenance',
             icon: Wrench, evidence: '/api/placeholder/40/40', status: 'Resolved',
-            statusColor: 'text-green-500 bg-green-500/10 border-green-500/20'
+            statusColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
         },
     ];
 
     return (
-        <div className="min-h-screen bg-[#050505] text-slate-300 font-sans selection:bg-green-500/30">
+        <div className="min-h-screen bg-[#000000] text-slate-300 font-sans selection:bg-blue-500/30">
             {/* Background Grid */}
             <div className="fixed inset-0 pointer-events-none opacity-[0.03]"
                 style={{
@@ -50,27 +51,34 @@ export default function ArchivePage() {
             </div>
 
             {/* Navbar */}
-            <nav className="h-16 border-b border-white/5 flex items-center justify-between px-8 bg-[#050505]/80 backdrop-blur-md sticky top-0 z-50">
-                <div className="flex items-center gap-12">
+            <nav className="h-16 border-b border-white/5 flex items-center justify-between px-8 bg-[#0f1116]/80 backdrop-blur-md sticky top-0 z-50">
+                <div className="flex items-center gap-8">
+                    {/* Back Button */}
+                    <Link href="/tenant" className="p-2 hover:bg-white/5 rounded-full text-slate-400 hover:text-white transition group">
+                        <ArrowLeft size={18} className="group-hover:-translate-x-0.5 transition-transform" />
+                    </Link>
+
                     <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-green-500 rounded flex items-center justify-center text-black font-bold">P</div>
+                        <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white font-bold">G</div>
                         <div className="leading-tight">
                             <span className="block font-bold text-white tracking-wide">PROPFLOW</span>
                             <span className="block text-[9px] text-slate-500 font-mono tracking-widest">PRODUCTION GRADE</span>
                         </div>
                     </div>
-                    <div className="hidden md:flex items-center gap-8 text-sm font-medium">
-                        <a href="/tenant" className="text-slate-400 hover:text-white transition">Dashboard</a>
-                        <a href="#" className="text-slate-400 hover:text-white transition">Active Requests</a>
-                        <a href="#" className="text-green-500 border-b-2 border-green-500 py-5">Archive</a>
-                        <a href="#" className="text-slate-400 hover:text-white transition">Settings</a>
-                    </div>
                 </div>
+
+                <div className="hidden md:flex items-center gap-8 text-sm font-medium">
+                    <Link href="/tenant" className="text-slate-400 hover:text-white transition">Dashboard</Link>
+                    <Link href="/tenant/active" className="text-slate-400 hover:text-white transition">Active Requests</Link>
+                    <Link href="/archive" className="text-blue-500 border-b-2 border-blue-500 py-5">Archive</Link>
+                    <Link href="/tenant/settings" className="text-slate-400 hover:text-white transition">Settings</Link>
+                </div>
+
                 <div className="flex items-center gap-4">
-                    <button className="p-2 hover:bg-white/5 rounded-full text-slate-400 transition">
+                    <Link href="/tenant/notifications" className="p-2 hover:bg-white/5 rounded-full text-slate-400 transition">
                         <Bell size={18} />
-                    </button>
-                    <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-900 font-bold border border-amber-200/20">
+                    </Link>
+                    <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-300 font-bold border border-white/10">
                         <User size={16} />
                     </div>
                 </div>
@@ -82,7 +90,7 @@ export default function ArchivePage() {
                     {/* Left Column: Data Table */}
                     <div className="flex-1">
                         <div className="mb-8">
-                            <div className="flex items-center gap-2 text-xs font-mono text-green-500 mb-2">
+                            <div className="flex items-center gap-2 text-xs font-mono text-blue-500 mb-2">
                                 <Clock size={12} />
                                 <span>ARCHIVE // TENANT HISTORY</span>
                             </div>
@@ -91,7 +99,7 @@ export default function ArchivePage() {
                         </div>
 
                         {/* Filters */}
-                        <div className="flex items-center justify-between bg-[#0a0a0a] border border-white/5 p-2 rounded-lg mb-8">
+                        <div className="flex items-center justify-between bg-[#0f1116] border border-white/5 p-2 rounded-lg mb-8">
                             <div className="flex items-center gap-2">
                                 <button className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-white/5 rounded hover:bg-white/10 transition">
                                     <Filter size={12} /> FILTERS
@@ -107,11 +115,11 @@ export default function ArchivePage() {
                                     Category: All <ChevronDown size={12} />
                                 </button>
                             </div>
-                            <button className="text-[10px] font-bold text-green-500 hover:text-green-400 px-4">CLEAR ALL</button>
+                            <button className="text-[10px] font-bold text-blue-500 hover:text-blue-400 px-4">CLEAR ALL</button>
                         </div>
 
                         {/* Data Table */}
-                        <div className="border border-white/5 rounded-lg overflow-hidden bg-[#0a0a0a]">
+                        <div className="border border-white/5 rounded-lg overflow-hidden bg-[#0f1116]">
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="border-b border-white/5 text-[10px] font-bold text-slate-500 tracking-wider">
@@ -126,8 +134,8 @@ export default function ArchivePage() {
                                 <tbody>
                                     {requests.map((req, i) => (
                                         <tr key={i} className="border-b border-white/5 hover:bg-white/[0.02] transition group">
-                                            <td className="p-4 pl-6 text-sm font-mono font-bold text-green-500">
-                                                {req.id.split('-').map((part, j) => j === 0 ? <span key={j} className="opacity-50 text-green-500 mr-0.5">#REQ-</span> : part)}
+                                            <td className="p-4 pl-6 text-sm font-mono font-bold text-blue-500">
+                                                {req.id.split('-').map((part, j) => j === 0 ? <span key={j} className="opacity-50 text-blue-500 mr-0.5">#REQ-</span> : part)}
                                             </td>
                                             <td className="p-4 text-sm text-slate-300 font-mono">
                                                 {req.date.split(',')[0]}<span className="text-slate-600">, {req.date.split(',')[1]}</span>
@@ -152,9 +160,9 @@ export default function ArchivePage() {
                                                 </span>
                                             </td>
                                             <td className="p-4 text-right pr-6">
-                                                <button className="px-3 py-1.5 border border-white/10 bg-white/5 hover:bg-white/10 rounded text-[10px] font-bold text-slate-300 transition">
+                                                <Link href={`/tenant/requests/${req.id}`} className="px-3 py-1.5 border border-white/10 bg-white/5 hover:bg-white/10 rounded text-[10px] font-bold text-slate-300 transition inline-block">
                                                     QUICK VIEW
-                                                </button>
+                                                </Link>
                                             </td>
                                         </tr>
                                     ))}
@@ -174,27 +182,27 @@ export default function ArchivePage() {
                     <div className="w-full lg:w-80 space-y-6">
 
                         <h3 className="text-sm font-bold text-white flex items-center gap-2 mb-4">
-                            <div className="w-1 h-1 bg-green-500 rounded-full"></div>
+                            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
                             MAINTENANCE SUMMARY
                         </h3>
 
                         {/* Summary Widget */}
-                        <div className="bg-[#0a0a0a] border border-white/5 rounded-xl p-6 relative overflow-hidden">
+                        <div className="bg-[#0f1116] border border-white/5 rounded-xl p-6 relative overflow-hidden">
                             <div className="flex justify-between items-start mb-2">
                                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Requests (2023)</span>
                                 <FileText size={40} className="text-slate-800 absolute right-4 top-4 opacity-50" />
                             </div>
                             <div className="flex items-end gap-3 mb-6">
-                                <span className="text-5xl font-bold text-green-500 tracking-tighter">24</span>
-                                <span className="px-1.5 py-0.5 bg-green-900/30 text-green-400 text-[10px] font-bold rounded mb-2 border border-green-500/20">↑ 12%</span>
+                                <span className="text-5xl font-bold text-blue-500 tracking-tighter">24</span>
+                                <span className="px-1.5 py-0.5 bg-blue-900/30 text-blue-400 text-[10px] font-bold rounded mb-2 border border-blue-500/20">↑ 12%</span>
                             </div>
                             <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden">
-                                <div className="h-full w-2/3 bg-green-500 rounded-full"></div>
+                                <div className="h-full w-2/3 bg-blue-500 rounded-full"></div>
                             </div>
                         </div>
 
                         {/* Resolution Time Widget */}
-                        <div className="bg-[#0a0a0a] border border-white/5 rounded-xl p-6 relative">
+                        <div className="bg-[#0f1116] border border-white/5 rounded-xl p-6 relative">
                             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-2">Avg. Resolution Time</span>
                             <div className="flex items-baseline gap-1 mb-2">
                                 <span className="text-4xl font-bold text-white">4.2</span>
@@ -205,22 +213,22 @@ export default function ArchivePage() {
                         </div>
 
                         {/* Recent Activity */}
-                        <div className="bg-[#0a0a0a] border border-white/5 rounded-xl p-6">
+                        <div className="bg-[#0f1116] border border-white/5 rounded-xl p-6">
                             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-6">Recent Activity</span>
 
                             <div className="space-y-6 relative pl-2 border-l border-white/5 ml-1">
                                 <div className="relative pl-6">
-                                    <div className="absolute -left-[5px] top-1.5 w-2 h-2 rounded-full border border-green-500 bg-[#0a0a0a]"></div>
+                                    <div className="absolute -left-[5px] top-1.5 w-2 h-2 rounded-full border border-blue-500 bg-[#0f1116]"></div>
                                     <h4 className="text-xs font-bold text-white">REQ-2049 Resolved</h4>
                                     <p className="text-[10px] text-slate-500">Just now</p>
                                 </div>
                                 <div className="relative pl-6">
-                                    <div className="absolute -left-[5px] top-1.5 w-2 h-2 rounded-full border border-slate-700 bg-[#0a0a0a]"></div>
+                                    <div className="absolute -left-[5px] top-1.5 w-2 h-2 rounded-full border border-slate-700 bg-[#0f1116]"></div>
                                     <h4 className="text-xs font-bold text-white">Ticket #2049 Updated</h4>
                                     <p className="text-[10px] text-slate-500">2 hours ago</p>
                                 </div>
                                 <div className="relative pl-6">
-                                    <div className="absolute -left-[5px] top-1.5 w-2 h-2 rounded-full border border-slate-700 bg-[#0a0a0a]"></div>
+                                    <div className="absolute -left-[5px] top-1.5 w-2 h-2 rounded-full border border-slate-700 bg-[#0f1116]"></div>
                                     <h4 className="text-xs font-bold text-white">New Photo Added</h4>
                                     <p className="text-[10px] text-slate-500">Yesterday</p>
                                 </div>

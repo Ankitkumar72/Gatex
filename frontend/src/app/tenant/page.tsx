@@ -5,7 +5,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
     Bot, User, Send, Paperclip, MoreHorizontal,
     MapPin, Clock, ShieldAlert, Phone, MessageSquare,
-    CheckCircle2, AlertTriangle, ArrowUpRight, Bell, Menu, FileText, X, Info, StickyNote, Plus
+    CheckCircle2, AlertTriangle, ArrowUpRight, Bell, Menu, FileText, X, Info, StickyNote, Plus, RotateCcw
 } from 'lucide-react';
 import { api } from '@/lib/api';
 
@@ -17,12 +17,22 @@ export default function TenantPortalWorkspace() {
     const [toast, setToast] = useState<{ message: string; visible: boolean }>({ message: '', visible: false });
 
     // Chat State
-    const [messages, setMessages] = useState([
-        { id: '1', role: 'agent', content: 'Hello Alex. I noticed you started a new request ticket. How can I help with your unit today?', time: '10:42 AM' }
-    ]);
+    const [messages, setMessages] = useState<{ id: string; role: string; content: string; time: string }[]>([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    // Initialize Chat with Local Time and Random ID on Mount
+    useEffect(() => {
+        const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const randomId = Math.floor(1000 + Math.random() * 9000).toString();
+
+        setMessages([
+            { id: '1', role: 'agent', content: 'Hello Alex. I noticed you started a new request ticket. How can I help with your unit today?', time: now }
+        ]);
+
+        setTicketState(prev => ({ ...prev, requestId: randomId }));
+    }, []);
 
     // Ticket State (Dynamic from Backend)
     const [ticketState, setTicketState] = useState<{
@@ -36,7 +46,7 @@ export default function TenantPortalWorkspace() {
         assetInfo: string;
         assignedTechnician: any;
     }>({
-        requestId: 'Generated...',
+        requestId: '----',
         title: 'New Maintenance Request',
         priority: 'Normal', // Normal, High, Emergency
         category: 'Uncategorized',
@@ -79,7 +89,12 @@ export default function TenantPortalWorkspace() {
 
     // Button Handlers
     const handleReset = () => {
-        setMessages([{ id: '1', role: 'agent', content: 'Hello Alex. I noticed you started a new request ticket. How can I help with your unit today?', time: '10:42 AM' }]);
+        const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        // Generate new ID on reset to simulate fresh start
+        const newId = Math.floor(1000 + Math.random() * 9000).toString();
+        setTicketState(prev => ({ ...prev, requestId: newId }));
+
+        setMessages([{ id: '1', role: 'agent', content: 'Hello Alex. I noticed you started a new request ticket. How can I help with your unit today?', time: now }]);
         showToast('Chat history has been reset.');
     };
 
@@ -96,7 +111,8 @@ export default function TenantPortalWorkspace() {
         setIsLoading(true);
 
         try {
-            const response = await api.chatWithAgent(userMsg.content, 'demo-thread');
+            // Use the generated requestId as the thread_id
+            const response = await api.chatWithAgent(userMsg.content, ticketState.requestId);
 
             const agentMsg = {
                 id: (Date.now() + 1).toString(),
@@ -180,13 +196,15 @@ export default function TenantPortalWorkspace() {
                             onClick={handleReset}
                             className="text-xs text-slate-500 hover:text-white flex items-center gap-1 transition-colors"
                         >
-                            <span className="material-icons">refresh</span> Reset
+                            <RotateCcw size={14} /> Reset
                         </button>
                     </div>
 
                     <div className="flex-1 overflow-y-auto p-4 space-y-6 pb-24 md:pb-4">
                         <div className="flex justify-center">
-                            <span className="text-[10px] font-bold text-slate-600 bg-slate-900/50 px-2 py-1 rounded">TODAY, 10:42 AM</span>
+                            <span className="text-[10px] font-bold text-slate-600 bg-slate-900/50 px-2 py-1 rounded uppercase">
+                                TODAY, {messages.length > 0 ? messages[0].time : '...'}
+                            </span>
                         </div>
 
                         {messages.map((msg) => (
@@ -233,20 +251,6 @@ export default function TenantPortalWorkspace() {
                                 <ArrowUpRight size={16} />
                             </button>
                         </div>
-                        <div className="flex gap-2 mt-3 overflow-x-auto no-scrollbar">
-                            <button
-                                onClick={() => handleQuickReply("No visible damage")}
-                                className="whitespace-nowrap px-3 py-1.5 rounded-full bg-[#1c212c] border border-slate-700 text-xs text-slate-400 hover:text-white hover:border-slate-500 transition"
-                            >
-                                No visible damage
-                            </button>
-                            <button
-                                onClick={() => handleQuickReply("It's urgent")}
-                                className="whitespace-nowrap px-3 py-1.5 rounded-full bg-[#1c212c] border border-slate-700 text-xs text-slate-400 hover:text-white hover:border-slate-500 transition"
-                            >
-                                It's urgent
-                            </button>
-                        </div>
                     </div>
                 </div>
 
@@ -258,7 +262,7 @@ export default function TenantPortalWorkspace() {
                     {/* Header */}
                     <div className="h-14 border-b border-slate-800 flex items-center justify-between px-6 bg-[#0f1116] shrink-0">
                         <div className="flex items-center gap-3">
-                            <span className="text-lg font-bold text-white">Request #{ticketState.requestId.substring(4)}</span>
+                            <span className="text-lg font-bold text-white">Id : {ticketState.requestId}</span>
                             <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-500 border border-blue-500/20 uppercase tracking-wide">{ticketState.status}</span>
                         </div>
                         <div className="flex gap-2 text-slate-400">
