@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from src.tiny_vector_store import TinyVectorStore
-from src.tools import search_lease_rag
+from src.skills.lease_skills import search_lease_policy
 
 class TestRAG(unittest.TestCase):
     def setUp(self):
@@ -21,8 +21,8 @@ class TestRAG(unittest.TestCase):
         if os.path.exists(self.test_db_path):
             os.remove(self.test_db_path)
 
-    @patch('src.tools.GoogleGenerativeAIEmbeddings')
-    @patch('src.tools.DB_PATH', "test_knowledge.json") # Patch the DB_PATH global in tools
+    @patch('src.skills.lease_skills.GoogleGenerativeAIEmbeddings')
+    @patch('src.skills.lease_skills.DB_PATH', "test_knowledge.json") # Patch the DB_PATH global in skills
     @patch.dict(os.environ, {"GOOGLE_API_KEY": "dummy"})
     def test_rag_flow(self, mock_embeddings_cls):
         print("\n--- Testing RAG Tool with Mocked Embeddings ---")
@@ -52,7 +52,7 @@ class TestRAG(unittest.TestCase):
         
         # 3. Call the Tool (which uses the patched DB_PATH)
         # Query for "appliance" -> matches [1, 0] -> "Landlord fixes appliances."
-        result = search_lease_rag.invoke("Who fixes the appliance?")
+        result = search_lease_policy.invoke({"query": "Who fixes the appliance?"})
         
         print(f"Tool Output:\n{result}")
         

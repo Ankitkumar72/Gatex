@@ -1,7 +1,7 @@
 from datetime import datetime
 from langchain_core.messages import AIMessage
 from src.state import GatexState
-from src.tools import vendor_database_query, calendar_check
+from src.skills.maintenance_skills import find_vendors, check_vendor_availability
 
 def execution_node(state: GatexState):
     """
@@ -12,7 +12,7 @@ def execution_node(state: GatexState):
     category = state.get("maintenance_category", "general")
     
     # 1. Find Vendors
-    vendors = vendor_database_query.invoke(category)
+    vendors = find_vendors.invoke({"category": category})
     
     # 2. Select Best Vendor (Mock logic: best rating)
     # Sort by rating descending
@@ -21,7 +21,7 @@ def execution_node(state: GatexState):
     
     # 3. Check Availability
     for v in sorted_vendors:
-        if calendar_check.invoke(v['id']):
+        if check_vendor_availability.invoke({"vendor_id": v['id']}):
             selected = v
             break
             
