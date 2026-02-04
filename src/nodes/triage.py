@@ -38,7 +38,7 @@ def load_prompt(filename):
     with open(path, "r") as f:
         return f.read()
 
-TRIAGE_SYSTEM_PROMPT = load_prompt("triage.md")
+TRIAGE_SYSTEM_PROMPT = load_prompt("triage_agent.md")
 
 
 # 3. Node Function
