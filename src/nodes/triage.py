@@ -21,6 +21,14 @@ class TriageOutput(BaseModel):
     reasoning: str = Field(
         description="Brief explanation of why this classification and score were given."
     )
+    clarification_question: Optional[str] = Field(
+        description="If classification is 'clarification_needed', write a polite question to ask the tenant for more details.",
+        default=None
+    )
+    acknowledgment: Optional[str] = Field(
+        description="A brief, polite acknowledgment of the issue to reassure the tenant (e.g., 'I understand your kitchen sink is leaking.').",
+        default=None
+    )
 
 # 2. System Prompt
 TRIAGE_SYSTEM_PROMPT = """You are the Triage Agent for Gatex, a property management system.
@@ -29,7 +37,12 @@ Your goal is to analyze tenant maintenance requests and classify them for safety
 RULES:
 1. **Emergency**: Immediate threat to life, safety, or severe property damage (fire, flood, gas leak, no heat in winter).
 2. **Routine**: Standard maintenance issues (leaky faucet, broken light, appliance issue).
-3. **Clarification Needed**: If the request is too vague to classify (e.g., "It's broken").
+3. **Clarification Needed**: If the request is too vague to classify (e.g., "It's broken", "Help").
+
+LANGUAGE UNDERSTANDING:
+- Tenants may use slang, colloquialisms, or non-standard English (e.g., "loo" for toilet, "bust" for broken, "sparky" for electrician issues).
+- You must interpret these correctly based on context. 
+- If you are unsure but it sounds serious, err on the side of caution (higher urgency).
 
 CATEGORIES:
 - **Plumbing**: Leaks, clogs, water pressure, toilets, sinks.
@@ -39,7 +52,10 @@ CATEGORIES:
 - **Fire Safety**: Smoke detectors, carbon monoxide, fire hazards.
 - **General**: Windows, doors, floors, paint, pests, other.
 
-Output must be valid JSON matching the TriageOutput schema.
+OUTPUT:
+- Must be valid JSON matching the TriageOutput schema.
+- If 'clarification_needed', you MUST provide a `clarification_question`.
+- Always provide a short `acknowledgment` to show you understood the issue.
 """
 
 # 3. Node Function
@@ -51,29 +67,43 @@ def triage_node(state: GatexState):
     messages = state['messages']
     
     # Initialize LLM (Mocked or Real)
-    # NOTE: In production, ensure GOOGLE_API_KEY is set.
-    # We use structured output to ensure strict adherence to the schema.
     from src.llm_factory import get_llm
+    from langchain_core.messages import AIMessage
     
     # Initialize LLM via Factory
     llm = get_llm(temperature=0)
     structured_llm = llm.with_structured_output(TriageOutput)
     
     # Construct the prompt
-    # We pass the full conversation history to give context
     chain = structured_llm
     
     # Invoke
-    # In a real run, we would need the API key. 
-    # For now, if this fails due to missing key, we might need a fallback mock for the user to run locally.
-    # Invoke
-    # The user has confirmed they will provide the API key.
-    # We let the exception bubble up if the key is missing/invalid so the user knows to fix it.
     response: TriageOutput = chain.invoke([SystemMessage(content=TRIAGE_SYSTEM_PROMPT)] + messages)
 
-    return {
+    # Prepare updates
+    updates = {
         "classification": response.classification,
         "urgency_score": response.urgency_score,
         "maintenance_category": response.maintenance_category,
-        # We don't overwrite messages here, just update metadata
     }
+    
+    # If we need clarification, or just want to acknowledge, we can append an AI message.
+    # Logic:
+    # 1. If clarification_needed -> Send question.
+    # 2. If routine/emergency -> Send acknowledgment (optional, but good for UX).
+    
+    response_text = None
+    if response.classification == 'clarification_needed' and response.clarification_question:
+        response_text = response.clarification_question
+    elif response.acknowledgment:
+        # We might want to save this for the next step, but for now let's just log it 
+        # or maybe we don't send it yet because 'knowledge' node might add more info?
+        # A simple approach: specific nodes send specific messages. 
+        # But triage is the first listener.
+        # Let's simple say: if clarification is needed, we MUST output a message to stop the flow and ask.
+        pass
+        
+    if response_text:
+        updates["messages"] = [AIMessage(content=response_text)]
+        
+    return updates

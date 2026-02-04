@@ -218,11 +218,27 @@ async def chat_endpoint(
             
         # Extract last AI message if available, or summarize status
         ai_response = "Request Processed."
+        
+        # Logic to find the LATEST AI message to show the user
+        # We iterate backwards to find the first AIMessage
         if snapshot.values.get("messages"):
-             # Simple heuristic to get last message content
-             last_msg = snapshot.values["messages"][-1]
-             if hasattr(last_msg, "content"):
-                 ai_response = last_msg.content
+             messages = snapshot.values["messages"]
+             for msg in reversed(messages):
+                 if isinstance(msg, dict) and msg.get("type") == "ai":
+                     ai_response = msg.get("content", "")
+                     break
+                 elif hasattr(msg, "type") and msg.type == "ai":
+                     ai_response = msg.content
+                     break
+                 # Checking for HumanMessage to stop if we hit one? 
+                 # Actually, usually the last message is AI if we just ran.
+                 # But if we stopped at interrupt, it might be different.
+        
+        # Fallback if specific status implies a message wasn't generated but we need to say something
+        if status == "waiting_for_input" and ai_response == "Request Processed.":
+            ai_response = "I need a bit more information to help you."
+        elif status == "waiting_for_approval" and ai_response == "Request Processed.":
+            ai_response = "I've flagged this for manager approval. Please wait."
         
         return ChatResponse(
             message=ai_response,
