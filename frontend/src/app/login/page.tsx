@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { User, ShieldCheck, Wrench, Lock, Mail, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import Navbar from '@/components/Navbar';
+import { api } from '@/lib/api';
 
 export default function LoginPage() {
     return (
@@ -24,8 +25,16 @@ function LoginForm() {
 
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [email, setEmail] = useState('tenant@example.com');
+    const [password, setPassword] = useState('password');
+    const [error, setError] = useState('');
 
     const handleRoleSelect = (role: 'tenant' | 'manager' | 'tech') => {
+        // Set default email based on role for demo convenience
+        if (role === 'tenant') setEmail('tenant@example.com');
+        if (role === 'manager') setEmail('manager@example.com');
+        if (role === 'tech') setEmail('tech@example.com');
+
         router.push(`/login?role=${role}`);
     };
 
@@ -33,15 +42,25 @@ function LoginForm() {
         router.push('/login');
     };
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        // Simulate network delay for effect
-        setTimeout(() => {
+        setError('');
+
+        try {
+            await api.login(email, password);
+
+            // Redirect based on role
             if (activeRole === 'tenant') router.push('/tenant');
-            if (activeRole === 'manager') router.push('/manager');
-            if (activeRole === 'tech') router.push('/technician');
-        }, 800);
+            else if (activeRole === 'manager') router.push('/manager');
+            else if (activeRole === 'tech') router.push('/technician');
+            else router.push('/tenant');
+
+        } catch (err: any) {
+            console.error(err);
+            setError(err.message || 'Login failed');
+            setLoading(false);
+        }
     };
 
     const getRoleIcon = () => {
@@ -140,6 +159,12 @@ function LoginForm() {
                                 <p className="text-zinc-500 text-xs">Enter your credentials to access your secure workspace.</p>
                             </div>
 
+                            {error && (
+                                <div className="mb-4 p-3 rounded bg-red-900/20 border border-red-500/20 text-red-400 text-xs text-center">
+                                    {error}
+                                </div>
+                            )}
+
                             <form onSubmit={handleLogin} className="space-y-4">
                                 <div>
                                     <label className="text-[10px] uppercase tracking-wider text-zinc-500 font-bold mb-2 block">Email or Username</label>
@@ -150,6 +175,8 @@ function LoginForm() {
                                         <input
                                             type="email"
                                             required
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
                                             placeholder="name@company.com"
                                             className="w-full bg-[#050505] border border-zinc-800 rounded-lg py-3 pl-10 pr-4 text-sm text-zinc-300 placeholder-zinc-700 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all"
                                         />
@@ -168,6 +195,8 @@ function LoginForm() {
                                         <input
                                             type={showPassword ? "text" : "password"}
                                             required
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
                                             placeholder="••••••••"
                                             className="w-full bg-[#050505] border border-zinc-800 rounded-lg py-3 pl-10 pr-10 text-sm text-zinc-300 placeholder-zinc-700 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all"
                                         />
