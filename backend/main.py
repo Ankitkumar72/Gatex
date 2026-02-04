@@ -2,7 +2,7 @@ import sys
 import os
 import uuid
 from typing import List, Optional, Dict, Any
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -101,26 +101,26 @@ def health_check():
 
 @app.post("/auth/register", response_model=TokenResponse)
 @limiter.limit("3/minute")
-async def register(request: RegisterRequest, db: Session = Depends(get_db)):
+async def register(request: Request, body: RegisterRequest, db: Session = Depends(get_db)):
     """Register a new user"""
-    logger.info(f"Registration attempt: {request.email}")
+    logger.info(f"Registration attempt: {body.email}")
     
     # Check if user exists
-    existing_user = db.query(UserDB).filter(UserDB.email == request.email).first()
+    existing_user = db.query(UserDB).filter(UserDB.email == body.email).first()
     if existing_user:
-        logger.warning(f"Registration failed - email exists: {request.email}")
+        logger.warning(f"Registration failed - email exists: {body.email}")
         raise HTTPException(status_code=400, detail="Email already registered")
     
     # Create new user
     user_id = str(uuid.uuid4())
-    hashed_pwd = hash_password(request.password)
+    hashed_pwd = hash_password(body.password)
     
     new_user = UserDB(
         id=user_id,
-        email=request.email,
+        email=body.email,
         hashed_password=hashed_pwd,
-        name=request.name,
-        role=request.role
+        name=body.name,
+        role=body.role
     )
     
     db.add(new_user)
@@ -128,39 +128,39 @@ async def register(request: RegisterRequest, db: Session = Depends(get_db)):
     db.refresh(new_user)
     
     # Create tokens
-    access_token = create_access_token({"sub": user_id, "email": request.email, "role": request.role, "name": request.name})
+    access_token = create_access_token({"sub": user_id, "email": body.email, "role": body.role, "name": body.name})
     refresh_token = create_refresh_token({"sub": user_id})
     
-    logger.info(f"User registered successfully: {request.email}")
+    logger.info(f"User registered successfully: {body.email}")
     
     return TokenResponse(
         access_token=access_token,
         refresh_token=refresh_token,
-        user=User(id=user_id, email=request.email, role=request.role, name=request.name)
+        user=User(id=user_id, email=body.email, role=body.role, name=body.name)
     )
 
 
 @app.post("/auth/login", response_model=TokenResponse)
 @limiter.limit(settings.LOGIN_RATE_LIMIT)
-async def login(request: LoginRequest, db: Session = Depends(get_db)):
+async def login(request: Request, body: LoginRequest, db: Session = Depends(get_db)):
     """Login user and return JWT tokens"""
-    logger.info(f"Login attempt: {request.email}")
+    logger.info(f"Login attempt: {body.email}")
     
     # Find user
-    user = db.query(UserDB).filter(UserDB.email == request.email).first()
-    if not user or not verify_password(request.password, user.hashed_password):
-        logger.warning(f"Failed login attempt: {request.email}")
+    user = db.query(UserDB).filter(UserDB.email == body.email).first()
+    if not user or not verify_password(body.password, user.hashed_password):
+        logger.warning(f"Failed login attempt: {body.email}")
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     if not user.is_active:
-        logger.warning(f"Login attempt for inactive user: {request.email}")
+        logger.warning(f"Login attempt for inactive user: {body.email}")
         raise HTTPException(status_code=403, detail="Account is inactive")
     
     # Create tokens
     access_token = create_access_token({"sub": user.id, "email": user.email, "role": user.role, "name": user.name})
     refresh_token = create_refresh_token({"sub": user.id})
     
-    logger.info(f"User logged in successfully: {request.email}")
+    logger.info(f"User logged in successfully: {body.email}")
     
     return TokenResponse(
         access_token=access_token,
@@ -182,6 +182,7 @@ async def get_me(current_user: User = Depends(get_current_user)):
 @app.post("/agent/chat", response_model=ChatResponse)
 @limiter.limit("20/minute")
 async def chat_endpoint(
+    request: Request,
     req: ChatRequest,
     current_user: User = Depends(get_current_user)  # ✅ Authentication required
 ):
@@ -239,6 +240,7 @@ async def chat_endpoint(
 @app.post("/agent/approve", response_model=ChatResponse)
 @limiter.limit("10/minute")
 async def approve_endpoint(
+    request: Request,
     req: ApprovalRequest,
     current_user: User = Depends(require_role(UserRole.MANAGER, UserRole.ADMIN))  # ✅ Manager/Admin only
 ):

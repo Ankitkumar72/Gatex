@@ -31,6 +31,11 @@ class Settings(BaseSettings):
     
     # Logging
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
+
+    # LLM Settings
+    GOOGLE_API_KEY: Optional[str] = os.getenv("GOOGLE_API_KEY")
+    LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "google")
+    LLM_MODEL: str = os.getenv("LLM_MODEL", "gemini-2.5-flash")
     
     @property
     def allowed_origins_list(self) -> list:
@@ -40,6 +45,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = True
+        extra = "ignore"
 
 
 @lru_cache()
