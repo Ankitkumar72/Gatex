@@ -6,12 +6,15 @@ GateX is an intelligent, autonomous agent system designed to triage, troubleshoo
 
 *   **Stateful Orchestration**: Remembers conversation context and status across long wait times (e.g., waiting 4 hours for a tenant reply) using SQLite persistence.
 *   **Intelligent Triage**: Uses **Google Gemini 1.5 Pro** to analyze the urgency ("Emergency" vs. "Routine") and safety risks of every request.
+    *   *Dynamic Prompts*: Rules are stored in `src/prompts/` for easy editing.
+    *   *Slang Support*: Understands colloquialisms (e.g., "sparky", "busted").
 *   **Policy Auditor (RAG)**: A dedicated Knowledge Node that cites specific lease sections (e.g., "Section 4.1") to determine liability.
     *   *Context-Aware Ingestion*: Prepends section headers to chunks for accurate retrieval.
     *   *Clarification Cycle*: Proactively asks tenants for missing details.
     *   *Logic Guardrails*: Automatically detects DIY issues and sends guides instead of dispatching vendors.
 *   **Human-in-the-Loop (HITL)**: "Dead Man's Switch" architecture ensures no vendor is dispatched without explicit property manager approval.
-*   **Clean Architecture**: Separation of concerns into Schema (`state.py`), Agents (`nodes/`), and Routing (`graph.py`).
+*   **Secure Authentication**: JWT-based Auth flow ensuring only verified tenants can submit requests.
+*   **Clean Architecture**: Separation of concerns into Schema (`state.py`), Agents (`nodes/`), Routing (`graph.py`), and Skills (`skills/`).
 
 ## 👥 The 3-Interface Architecture
 
@@ -39,6 +42,7 @@ GateX is built to serve three distinct user roles, powered by a unified RAG brai
 *   **Embeddings**: Google Gemini `text-embedding-004`
 *   **Vector Store**: TinyVectorStore (JSON + Metadata + Header Injection)
 *   **Backend**: FastAPI
+*   **Auth**: JWT (JSON Web Tokens)
 *   **Validation**: Pydantic (Structured Output)
 *   **Persistence**: SQLite (SqliteSaver)
 *   **Runtime**: Python 3.10+
@@ -48,23 +52,25 @@ GateX is built to serve three distinct user roles, powered by a unified RAG brai
 ```
 d:/PropFlow/
 ├── backend/
-│   └── main.py       # FastAPI Entry Point (HITL Bridge)
+│   └── main.py       # FastAPI Entry Point (HITL Bridge & Auth)
 ├── src/
 │   ├── graph.py       # Main Orchestrator (Nodes & Edges)
 │   ├── state.py       # GateXState Schema
 │   ├── tiny_vector_store.py  # Custom Vector DB
 │   ├── llm_factory.py # Model Configuration (Gemini/OpenAI)
+│   ├── prompts/       # External System Prompts
+│   │   └── triage.md     # Triage Rules
 │   ├── nodes/         # The "Brains"
 │   │   ├── triage.py     # Gatekeeper (Emergency vs Routine)
 │   │   ├── knowledge.py  # Policy Auditor (RAG)
 │   │   └── execution.py  # Coordinator (Vendor matchmaking)
-│   └── tools.py       # External Tools Interface
+│   └── skills/        # The "Hands"
+│       └── maintenance_skills.py # Tools for tickets & vendors
 ├── scripts/
 │   ├── ingest.py             # RAG Ingestion (Chunking + Headers)
 │   ├── simulate_flow.py      # E2E Simulations
-│   └── test_api.py           # API Integration Tests
-├── GateX.db        # LangGraph State Persistence
-└── propflow_knowledge.json  # Vector Store Data
+├── verify_generalization.py  # Integration Test Suite
+└── verify_slang.py           # Slang Understanding Test
 ```
 
 ## ⚡ Quick Start
@@ -72,13 +78,13 @@ d:/PropFlow/
 ### 1. Prerequisites
 Ensure you have Python installed. Install dependencies:
 ```bash
-pip install langgraph langchain langchain-google-genai langchain-core pydantic langgraph-checkpoint-sqlite fastapi uvicorn requests python-dotenv
+pip install -r requirements.txt
 ```
 
 ### 2. Configure Environment
-Set your Google API Key:
+Set your Google API Key and other secrets in `.env`:
 ```powershell
-$env:GOOGLE_API_KEY="AIza-your-key-here"
+GOOGLE_API_KEY="AIza-your-key-here"
 ```
 
 ### 3. Run Ingestion (Load the Brain)
@@ -93,20 +99,28 @@ Start the backend to serve the agent:
 python -m uvicorn backend.main:app --reload
 ```
 
+### 5. Run Verification Tests
+Verify the agent's logic with unseen test cases:
+```bash
+python verify_generalization.py
+```
+
 ## 🧠 Workflow Logic
 
 1.  **Input**: Tenant says "My kitchen tap is leaking."
-2.  **Triage Node**: Classifies as `Routine` / `Plumbing`.
-3.  **Knowledge Node**: RAG Search -> "Landlord Responsibility" (Section 1.1).
-4.  **Execution Node**: Finds "Joe's Plumbing". Drafts Work Order.
-5.  **Status Check**: API reports `waiting_for_approval`.
-6.  **Action**: Manager POSTs to `/agent/approve`.
-7.  **Dispatch**: System sends email/SMS to vendor.
+2.  **Auth**: Token verified via Middleware.
+3.  **Triage Node**: Classifies as `Routine` / `Plumbing` using `src/prompts/triage.md`.
+4.  **Knowledge Node**: RAG Search -> "Landlord Responsibility" (Section 1.1).
+5.  **Execution Node**: Finds "Joe's Plumbing" via `skills/`. Drafts Work Order.
+6.  **Status Check**: API reports `waiting_for_approval`.
+7.  **Action**: Manager POSTs to `/agent/approve`.
+8.  **Dispatch**: System sends email/SMS to vendor.
 
 ## 🗺️ Roadmap
 
 - [x] **Phase 1: MVP Core** (State, Agents, Mock Tools, Persistence)
 - [x] **Phase 2: Intelligence** (Integration with Real LLM - Gemini)
 - [x] **Phase 3: Knowledge** (RAG, Policy Auditor, HITL Bridge)
-- [ ] **Phase 4: Frontend** (Next.js Dashboard Integration)
-- [ ] **Phase 5: Technician Module** (Manuals & History RAG)
+- [x] **Phase 4: Dynamic Configuration** (External Prompts, Skills Refactor)
+- [ ] **Phase 5: Frontend** (Next.js Dashboard Integration)
+- [ ] **Phase 6: Technician Module** (Manuals & History RAG)
