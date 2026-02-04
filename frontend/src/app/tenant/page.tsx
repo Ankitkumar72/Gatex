@@ -151,7 +151,7 @@ export default function TenantPortalWorkspace() {
     };
 
     return (
-        <div className="min-h-screen bg-[#000000] text-slate-300 font-sans flex flex-col h-screen overflow-hidden relative">
+        <div className="min-h-screen bg-background text-foreground font-sans flex flex-col h-screen overflow-hidden relative">
 
             {/* Toast Notification */}
             <div className={`fixed top-20 left-1/2 -translate-x-1/2 z-[100] transition-all duration-300 ${toast.visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}`}>
@@ -162,7 +162,7 @@ export default function TenantPortalWorkspace() {
             </div>
 
             {/* Top Header */}
-            <header className="h-14 border-b border-slate-800 bg-[#0f1116] flex items-center justify-between px-4 shrink-0 z-20">
+            <header className="h-14 border-b border-border bg-card flex items-center justify-between px-4 shrink-0 z-20">
                 <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white font-bold">G</div>
                     <span className="font-semibold text-white tracking-tight">GateX <span className="hidden md:inline text-slate-500 font-normal">Workspace</span></span>
@@ -174,7 +174,9 @@ export default function TenantPortalWorkspace() {
                             <p className="text-sm text-white leading-none">Alex Morgan</p>
                             <p className="text-[10px] text-slate-500">Tenant • Unit 402</p>
                         </div>
-                        <div className="w-8 h-8 rounded-full bg-slate-700 cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all" onClick={() => showToast('Profile settings coming soon')}></div>
+                        <Link href="/tenant/settings">
+                            <div className="w-8 h-8 rounded-full bg-slate-700 cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all"></div>
+                        </Link>
                     </div>
                 </div>
             </header>
@@ -185,9 +187,9 @@ export default function TenantPortalWorkspace() {
                 {/* LEFT PANEL: Chat / AI Assistant */}
                 <div className={`
                     ${mobileTab === 'chat' ? 'flex' : 'hidden md:flex'}
-                    w-full md:w-1/3 md:min-w-[350px] border-r border-slate-800 bg-[#0a0b0f] flex-col h-full
+                    w-full md:w-1/3 md:min-w-[350px] border-r border-border bg-muted flex-col h-full
                 `}>
-                    <div className="h-14 border-b border-slate-800 flex items-center justify-between px-4 bg-[#0f1116] shrink-0">
+                    <div className="h-14 border-b border-border flex items-center justify-between px-4 bg-card shrink-0">
                         <div className="flex items-center gap-2">
                             <div className="w-2 h-2 rounded-full bg-green-500"></div>
                             <span className="text-sm font-semibold text-white">AI Maintenance Assistant</span>
@@ -213,8 +215,8 @@ export default function TenantPortalWorkspace() {
                                     {msg.role === 'agent' ? <Bot size={16} className="text-white" /> : <User size={16} className="text-white" />}
                                 </div>
                                 <div className="flex flex-col gap-1">
-                                    <span className={`text-[10px] text-slate-500 ${msg.role === 'user' ? 'text-right' : ''}`}>{msg.role === 'agent' ? 'Assistant' : 'You'}</span>
-                                    <div className={`p-3 rounded-2xl text-sm ${msg.role === 'agent' ? 'bg-[#1c212c] text-white rounded-tl-none border border-slate-700' : 'bg-blue-600 text-white rounded-tr-none'
+                                    <span className={`text-[10px] text-muted-foreground ${msg.role === 'user' ? 'text-right' : ''}`}>{msg.role === 'agent' ? 'Assistant' : 'You'}</span>
+                                    <div className={`p-3 rounded-2xl text-sm ${msg.role === 'agent' ? 'bg-secondary text-foreground rounded-tl-none border border-border' : 'bg-blue-600 text-white rounded-tr-none'
                                         }`}>
                                         {msg.content}
                                     </div>
@@ -226,8 +228,8 @@ export default function TenantPortalWorkspace() {
                                 <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center shrink-0">
                                     <Bot size={16} className="text-white" />
                                 </div>
-                                <div className="bg-[#1c212c] p-3 rounded-2xl rounded-tl-none border border-slate-700">
-                                    <span className="animate-pulse">...</span>
+                                <div className="bg-secondary p-3 rounded-2xl rounded-tl-none border border-border">
+                                    <span className="animate-pulse text-foreground">...</span>
                                 </div>
                             </div>
                         )}
@@ -235,10 +237,10 @@ export default function TenantPortalWorkspace() {
                     </div>
 
                     {/* Input Area */}
-                    <div className="p-4 border-t border-slate-800 bg-[#0f1116] shrink-0 mb-16 md:mb-0">
+                    <div className="p-4 border-t border-border bg-card shrink-0 mb-16 md:mb-0">
                         <div className="relative">
                             <input
-                                className="w-full bg-[#1c212c] border border-slate-700 rounded-xl pl-4 pr-12 py-3 text-sm text-white focus:outline-none focus:border-blue-500 placeholder:text-slate-600"
+                                className="w-full bg-secondary border border-border rounded-xl pl-4 pr-12 py-3 text-sm text-foreground focus:outline-none focus:border-blue-500 placeholder:text-muted-foreground"
                                 placeholder="Type your response..."
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
@@ -257,10 +259,10 @@ export default function TenantPortalWorkspace() {
                 {/* RIGHT PANEL: Request Details */}
                 <div className={`
                     ${mobileTab === 'details' ? 'flex' : 'hidden md:flex'}
-                    w-full md:flex-1 bg-[#0f1116] flex-col h-full overflow-hidden
+                    w-full md:flex-1 bg-card flex-col h-full overflow-hidden
                 `}>
                     {/* Header */}
-                    <div className="h-14 border-b border-slate-800 flex items-center justify-between px-6 bg-[#0f1116] shrink-0">
+                    <div className="h-14 border-b border-border flex items-center justify-between px-6 bg-card shrink-0">
                         <div className="flex items-center gap-3">
                             <span className="text-lg font-bold text-white">Id : {ticketState.requestId}</span>
                             <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-500 border border-blue-500/20 uppercase tracking-wide">{ticketState.status}</span>
@@ -273,12 +275,12 @@ export default function TenantPortalWorkspace() {
                     <div className="flex-1 overflow-y-auto p-4 md:p-6 pb-24 md:pb-6">
 
                         {/* Main Card */}
-                        <div className="bg-[#12141a] border border-slate-800 rounded-xl p-6 mb-8 relative overflow-hidden">
+                        <div className="bg-muted border border-border rounded-xl p-6 mb-8 relative overflow-hidden">
                             <div className={`absolute top-0 left-0 w-1 h-full ${ticketState.priority === 'High' ? 'bg-orange-500' : 'bg-blue-500'}`}></div>
                             <div className="flex justify-between items-start mb-6">
                                 <div>
-                                    <h1 className="text-2xl font-bold text-white mb-2">{ticketState.title}</h1>
-                                    <div className="flex items-center gap-2 text-slate-400 text-sm h-5">
+                                    <h1 className="text-2xl font-bold text-foreground mb-2">{ticketState.title}</h1>
+                                    <div className="flex items-center gap-2 text-muted-foreground text-sm h-5">
                                         {(ticketState.location || ticketState.assetInfo) ? (
                                             <>
                                                 <MapPin size={14} />
@@ -299,17 +301,17 @@ export default function TenantPortalWorkspace() {
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="bg-[#1c212c] p-4 rounded-lg border border-slate-800">
-                                    <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider block mb-2">System Category</span>
-                                    <div className="flex items-center gap-2 text-white">
-                                        <div className="p-1.5 rounded bg-slate-700"><Menu size={14} /></div>
+                                <div className="bg-secondary p-4 rounded-lg border border-border">
+                                    <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block mb-2">System Category</span>
+                                    <div className="flex items-center gap-2 text-foreground">
+                                        <div className="p-1.5 rounded bg-accent text-accent-foreground"><Menu size={14} /></div>
                                         <span className="font-medium">{ticketState.category}</span>
                                     </div>
                                 </div>
-                                <div className="bg-[#1c212c] p-4 rounded-lg border border-slate-800">
-                                    <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider block mb-2">Target Completion</span>
-                                    <div className="flex items-center gap-2 text-white">
-                                        <div className="p-1.5 rounded bg-slate-700"><Clock size={14} /></div>
+                                <div className="bg-secondary p-4 rounded-lg border border-border">
+                                    <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block mb-2">Target Completion</span>
+                                    <div className="flex items-center gap-2 text-foreground">
+                                        <div className="p-1.5 rounded bg-accent text-accent-foreground"><Clock size={14} /></div>
                                         <span className="font-medium">{ticketState.eta}</span>
                                     </div>
                                 </div>
@@ -319,24 +321,24 @@ export default function TenantPortalWorkspace() {
                         {/* Activity Log / Timeline */}
                         <div>
                             <div className="flex justify-between items-end mb-4">
-                                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
                                     <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div> Activity Log
                                 </h3>
                                 <Link href="/archive" className="text-xs text-blue-500 hover:text-blue-400">View Full History</Link>
                             </div>
 
-                            <div className="space-y-6 relative pl-4 border-l border-slate-800 ml-2">
+                            <div className="space-y-6 relative pl-4 border-l border-border ml-2">
 
                                 {ticketState.assignedTechnician && (
                                     <div className="relative">
-                                        <div className="absolute -left-[21px] top-0 w-3 h-3 rounded-full bg-blue-500 border-2 border-[#0f1116]"></div>
+                                        <div className="absolute -left-[21px] top-0 w-3 h-3 rounded-full bg-blue-500 border-2 border-background"></div>
                                         <div className="flex justify-between items-start mb-2">
-                                            <h4 className="text-sm font-bold text-white">Technician Dispatched <span className="ml-2 px-1.5 py-0.5 rounded bg-blue-600 text-[10px] text-white">LIVE</span></h4>
-                                            <span className="text-xs text-slate-500 font-mono">Just now</span>
+                                            <h4 className="text-sm font-bold text-foreground">Technician Dispatched <span className="ml-2 px-1.5 py-0.5 rounded bg-blue-600 text-[10px] text-white">LIVE</span></h4>
+                                            <span className="text-xs text-muted-foreground font-mono">Just now</span>
                                         </div>
 
                                         {/* Technician Card */}
-                                        <div className="bg-[#12141a] border border-slate-800 rounded-lg p-4 mt-2">
+                                        <div className="bg-muted border border-border rounded-lg p-4 mt-2">
                                             <div className="flex justify-between items-start mb-4">
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-10 h-10 rounded-full bg-green-800 border border-green-600/30 flex items-center justify-center text-green-100 font-bold">
@@ -351,24 +353,24 @@ export default function TenantPortalWorkspace() {
                                             </div>
 
                                             {/* Fake Map Grid */}
-                                            <div className="h-32 bg-[#0a0b0f] rounded border border-slate-800 relative overflow-hidden mb-3">
+                                            <div className="h-32 bg-background rounded border border-border relative overflow-hidden mb-3">
                                                 <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'linear-gradient(#334155 1px, transparent 1px), linear-gradient(90deg, #334155 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
                                                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
                                                     <div className="w-3 h-3 bg-blue-500 rounded-full ring-4 ring-blue-500/20"></div>
-                                                    <div className="bg-[#0f1116] text-[10px] text-white px-2 py-1 rounded mt-1 border border-slate-700">En Route</div>
+                                                    <div className="bg-card text-[10px] text-foreground px-2 py-1 rounded mt-1 border border-border">En Route</div>
                                                 </div>
                                             </div>
 
                                             <div className="flex gap-2">
                                                 <button
                                                     onClick={() => showToast('Calling Technician...')}
-                                                    className="flex-1 py-1.5 rounded bg-[#1c212c] hover:bg-slate-800 border border-slate-700 text-xs text-white transition flex items-center justify-center gap-2"
+                                                    className="flex-1 py-1.5 rounded bg-secondary hover:bg-muted border border-border text-xs text-foreground transition flex items-center justify-center gap-2"
                                                 >
                                                     <Phone size={12} /> Call Tech
                                                 </button>
                                                 <button
                                                     onClick={() => showToast('Opening secure message channel...')}
-                                                    className="flex-1 py-1.5 rounded bg-[#1c212c] hover:bg-slate-800 border border-slate-700 text-xs text-white transition flex items-center justify-center gap-2"
+                                                    className="flex-1 py-1.5 rounded bg-secondary hover:bg-muted border border-border text-xs text-foreground transition flex items-center justify-center gap-2"
                                                 >
                                                     <MessageSquare size={12} /> Message
                                                 </button>
@@ -387,21 +389,21 @@ export default function TenantPortalWorkspace() {
                         {/* Access Details & Notes Section */}
                         <div className="mt-8">
                             <div className="flex justify-between items-end mb-4">
-                                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
                                     <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div> Access Details & Notes
                                 </h3>
-                                <span className="text-[10px] text-slate-600">For Technician</span>
+                                <span className="text-[10px] text-muted-foreground">For Technician</span>
                             </div>
 
                             {/* Note Input */}
-                            <div className="bg-[#12141a] border border-slate-800 rounded-xl p-4 mb-4">
-                                <label className="text-xs text-slate-400 mb-2 block">Gate Code, Access Instructions, or Important Details</label>
+                            <div className="bg-muted border border-border rounded-xl p-4 mb-4">
+                                <label className="text-xs text-muted-foreground mb-2 block">Gate Code, Access Instructions, or Important Details</label>
                                 <div className="relative">
                                     <textarea
                                         value={noteInput}
                                         onChange={(e) => setNoteInput(e.target.value)}
                                         placeholder="e.g., Gate code is #4523. Use side entrance. Dog is friendly."
-                                        className="w-full bg-[#1c212c] border border-slate-700 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-blue-500 placeholder:text-slate-600 resize-none min-h-[80px]"
+                                        className="w-full bg-secondary border border-border rounded-lg p-3 text-sm text-foreground focus:outline-none focus:border-blue-500 placeholder:text-muted-foreground resize-none min-h-[80px]"
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
                                                 handleAddNote();
@@ -410,11 +412,11 @@ export default function TenantPortalWorkspace() {
                                     />
                                 </div>
                                 <div className="flex justify-between items-center mt-3">
-                                    <span className="text-xs text-slate-600">Click " Add Note " button to submit</span>
+                                    <span className="text-xs text-muted-foreground">Click " Add Note " button to submit</span>
                                     <button
                                         onClick={handleAddNote}
                                         disabled={!noteInput.trim()}
-                                        className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed text-sm text-white transition font-semibold flex items-center gap-2"
+                                        className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:bg-secondary disabled:text-muted-foreground disabled:cursor-not-allowed text-sm text-white transition font-semibold flex items-center gap-2"
                                     >
                                         <Plus size={14} /> Add Note
                                     </button>
@@ -425,13 +427,13 @@ export default function TenantPortalWorkspace() {
                             {notes.length > 0 && (
                                 <div className="space-y-3">
                                     {notes.map((note) => (
-                                        <div key={note.id} className="bg-[#12141a] border border-slate-800 rounded-lg p-4 flex gap-3">
+                                        <div key={note.id} className="bg-muted border border-border rounded-lg p-4 flex gap-3">
                                             <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center text-green-500 flex-shrink-0">
                                                 <StickyNote size={16} />
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-sm text-white leading-relaxed break-words">{note.content}</p>
-                                                <span className="text-[10px] text-slate-500 font-mono mt-2 block">{note.time}</span>
+                                                <p className="text-sm text-foreground leading-relaxed break-words">{note.content}</p>
+                                                <span className="text-[10px] text-muted-foreground font-mono mt-2 block">{note.time}</span>
                                             </div>
                                         </div>
                                     ))}
@@ -442,17 +444,17 @@ export default function TenantPortalWorkspace() {
                     </div>
 
                     {/* Mobile Actions - Visible only on mobile */}
-                    <div className="md:hidden border-t border-slate-800 bg-[#0f1116] px-4 py-3 pb-20">
+                    <div className="md:hidden border-t border-border bg-card px-4 py-3 pb-20">
                         <div className="flex gap-2">
                             <button
                                 onClick={() => showToast('Message sent to Property Manager')}
-                                className="flex-1 px-3 py-2 rounded-lg bg-[#1c212c] hover:bg-slate-800 border border-slate-700 text-xs text-white transition flex items-center justify-center gap-1.5"
+                                className="flex-1 px-3 py-2 rounded-lg bg-secondary hover:bg-muted border border-border text-xs text-foreground transition flex items-center justify-center gap-1.5"
                             >
                                 <MessageSquare size={14} /> Contact Manager
                             </button>
                             <button
                                 onClick={() => showToast('Cancellation request submitted')}
-                                className="flex-1 px-3 py-2 rounded-lg bg-[#1c212c] hover:bg-red-900/20 border border-slate-700 text-xs text-red-400 hover:text-red-300 transition flex items-center justify-center gap-1.5"
+                                className="flex-1 px-3 py-2 rounded-lg bg-secondary hover:bg-red-900/20 border border-border text-xs text-red-400 hover:text-red-300 transition flex items-center justify-center gap-1.5"
                             >
                                 <X size={14} /> Cancel
                             </button>
@@ -460,21 +462,21 @@ export default function TenantPortalWorkspace() {
                     </div>
 
                     {/* Footer Actions - Desktop Only (Hidden on mobile as it takes too much space, or we can adapt it) */}
-                    <div className="hidden md:flex h-16 border-t border-slate-800 bg-[#0f1116] items-center justify-between px-6 shrink-0">
-                        <div className="text-xs text-white">
-                            <span className="text-slate-500 block">STATUS</span>
+                    <div className="hidden md:flex h-16 border-t border-border bg-card items-center justify-between px-6 shrink-0">
+                        <div className="text-xs text-foreground">
+                            <span className="text-muted-foreground block">STATUS</span>
                             Updated just now
                         </div>
                         <div className="flex gap-3">
                             <button
                                 onClick={() => showToast('Message sent to Property Manager')}
-                                className="px-4 py-2 rounded-lg bg-[#1c212c] hover:bg-slate-800 border border-slate-700 text-sm text-white transition"
+                                className="px-4 py-2 rounded-lg bg-secondary hover:bg-muted border border-border text-sm text-foreground transition"
                             >
                                 Contact Manager
                             </button>
                             <button
                                 onClick={() => showToast('Cancellation request submitted')}
-                                className="px-4 py-2 rounded-lg bg-[#1c212c] hover:bg-red-900/20 border border-slate-700 text-sm text-red-400 hover:text-red-300 transition"
+                                className="px-4 py-2 rounded-lg bg-secondary hover:bg-red-900/20 border border-border text-sm text-red-400 hover:text-red-300 transition"
                             >
                                 Cancel Request
                             </button>
@@ -483,17 +485,17 @@ export default function TenantPortalWorkspace() {
                 </div>
 
                 {/* Mobile Bottom Navigation */}
-                <div className="md:hidden absolute bottom-0 left-0 right-0 h-16 bg-[#0f1116] border-t border-slate-800 flex items-center justify-around px-4 z-50">
+                <div className="md:hidden absolute bottom-0 left-0 right-0 h-16 bg-card border-t border-border flex items-center justify-around px-4 z-50">
                     <button
                         onClick={() => setMobileTab('chat')}
-                        className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-all ${mobileTab === 'chat' ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}
+                        className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-all ${mobileTab === 'chat' ? 'text-blue-500' : 'text-muted-foreground hover:text-foreground'}`}
                     >
                         <Bot size={20} />
                         <span className="text-[10px] font-medium">Assistant</span>
                     </button>
                     <button
                         onClick={() => setMobileTab('details')}
-                        className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-all ${mobileTab === 'details' ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}
+                        className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-all ${mobileTab === 'details' ? 'text-blue-500' : 'text-muted-foreground hover:text-foreground'}`}
                     >
                         <FileText size={20} />
                         <span className="text-[10px] font-medium">Details</span>
