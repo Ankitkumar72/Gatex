@@ -25,12 +25,26 @@ export default function TenantPortalWorkspace() {
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     // Ticket State (Dynamic from Backend)
-    const [ticketState, setTicketState] = useState({
+    const [ticketState, setTicketState] = useState<{
+        requestId: string;
+        title: string;
+        priority: string;
+        category: string;
+        status: string;
+        eta: string;
+        location: string;
+        assetInfo: string;
+        assignedTechnician: any;
+    }>({
+        requestId: 'Generated...',
         title: 'New Maintenance Request',
         priority: 'Normal', // Normal, High, Emergency
         category: 'Uncategorized',
         status: 'In Progress',
-        eta: 'Pending Analysis'
+        eta: 'Pending Analysis',
+        location: '',
+        assetInfo: '',
+        assignedTechnician: null
     });
 
     // Notes State
@@ -93,9 +107,12 @@ export default function TenantPortalWorkspace() {
             setMessages(prev => [...prev, agentMsg]);
 
             if (response.final_state) {
-                const state = response.final_state;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const state: any = response.final_state;
+
                 setTicketState(prev => ({
                     ...prev,
+                    requestId: state.request_id || prev.requestId,
                     priority: state.classification === 'emergency' ? 'High' :
                         state.urgency_score && state.urgency_score > 7 ? 'High' : 'Normal',
                     category: state.maintenance_category ?
@@ -103,7 +120,10 @@ export default function TenantPortalWorkspace() {
                         : prev.category,
                     title: state.maintenance_category ?
                         `${state.maintenance_category.charAt(0).toUpperCase() + state.maintenance_category.slice(1)} Issue`
-                        : prev.title
+                        : prev.title,
+                    location: state.location || prev.location,
+                    assetInfo: state.asset_info || prev.assetInfo,
+                    assignedTechnician: state.selected_vendor || prev.assignedTechnician
                 }));
             }
 
@@ -238,7 +258,7 @@ export default function TenantPortalWorkspace() {
                     {/* Header */}
                     <div className="h-14 border-b border-slate-800 flex items-center justify-between px-6 bg-[#0f1116] shrink-0">
                         <div className="flex items-center gap-3">
-                            <span className="text-lg font-bold text-white">Request #4092</span>
+                            <span className="text-lg font-bold text-white">Request #{ticketState.requestId.substring(4)}</span>
                             <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-500 border border-blue-500/20 uppercase tracking-wide">{ticketState.status}</span>
                         </div>
                         <div className="flex gap-2 text-slate-400">
@@ -254,9 +274,16 @@ export default function TenantPortalWorkspace() {
                             <div className="flex justify-between items-start mb-6">
                                 <div>
                                     <h1 className="text-2xl font-bold text-white mb-2">{ticketState.title}</h1>
-                                    <div className="flex items-center gap-2 text-slate-400 text-sm">
-                                        <MapPin size={14} />
-                                        <span>Master Bedroom • Unit 402</span>
+                                    <div className="flex items-center gap-2 text-slate-400 text-sm h-5">
+                                        {(ticketState.location || ticketState.assetInfo) ? (
+                                            <>
+                                                <MapPin size={14} />
+                                                <span>{ticketState.location} {ticketState.assetInfo ? `• ${ticketState.assetInfo}` : ''}</span>
+                                            </>
+                                        ) : (
+                                            /* Empty or Pending */
+                                            <span className="text-slate-600 text-xs italic">Location pending...</span>
+                                        )}
                                     </div>
                                 </div>
                                 <div className="flex flex-col items-end">
@@ -296,76 +323,59 @@ export default function TenantPortalWorkspace() {
 
                             <div className="space-y-6 relative pl-4 border-l border-slate-800 ml-2">
 
-                                {/* Event 1 */}
-                                <div className="relative">
-                                    <div className="absolute -left-[21px] top-0 w-3 h-3 rounded-full bg-blue-500 border-2 border-[#0f1116]"></div>
-                                    <div className="flex justify-between items-start mb-2">
-                                        <h4 className="text-sm font-bold text-white">Technician Dispatched <span className="ml-2 px-1.5 py-0.5 rounded bg-blue-600 text-[10px] text-white">LIVE</span></h4>
-                                        <span className="text-xs text-slate-500 font-mono">10:45 AM</span>
-                                    </div>
+                                {ticketState.assignedTechnician && (
+                                    <div className="relative">
+                                        <div className="absolute -left-[21px] top-0 w-3 h-3 rounded-full bg-blue-500 border-2 border-[#0f1116]"></div>
+                                        <div className="flex justify-between items-start mb-2">
+                                            <h4 className="text-sm font-bold text-white">Technician Dispatched <span className="ml-2 px-1.5 py-0.5 rounded bg-blue-600 text-[10px] text-white">LIVE</span></h4>
+                                            <span className="text-xs text-slate-500 font-mono">Just now</span>
+                                        </div>
 
-                                    {/* Technician Card */}
-                                    <div className="bg-[#12141a] border border-slate-800 rounded-lg p-4 mt-2">
-                                        <div className="flex justify-between items-start mb-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-green-800 border border-green-600/30 flex items-center justify-center text-green-100 font-bold">JD</div>
-                                                <div>
-                                                    <p className="text-sm font-bold text-white">John Doe</p>
-                                                    <p className="text-xs text-slate-400">Senior HVAC Specialist</p>
+                                        {/* Technician Card */}
+                                        <div className="bg-[#12141a] border border-slate-800 rounded-lg p-4 mt-2">
+                                            <div className="flex justify-between items-start mb-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-full bg-green-800 border border-green-600/30 flex items-center justify-center text-green-100 font-bold">
+                                                        {ticketState.assignedTechnician.name.split(' ').map((n: string) => n[0]).join('')}
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-bold text-white">{ticketState.assignedTechnician.name}</p>
+                                                        <p className="text-xs text-slate-400">Maintenance Specialist</p>
+                                                    </div>
+                                                </div>
+                                                <div className="bg-yellow-500/10 text-yellow-500 px-2 py-0.5 rounded text-xs font-bold border border-yellow-500/20">★ {ticketState.assignedTechnician.rating}</div>
+                                            </div>
+
+                                            {/* Fake Map Grid */}
+                                            <div className="h-32 bg-[#0a0b0f] rounded border border-slate-800 relative overflow-hidden mb-3">
+                                                <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'linear-gradient(#334155 1px, transparent 1px), linear-gradient(90deg, #334155 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+                                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
+                                                    <div className="w-3 h-3 bg-blue-500 rounded-full ring-4 ring-blue-500/20"></div>
+                                                    <div className="bg-[#0f1116] text-[10px] text-white px-2 py-1 rounded mt-1 border border-slate-700">En Route</div>
                                                 </div>
                                             </div>
-                                            <div className="bg-yellow-500/10 text-yellow-500 px-2 py-0.5 rounded text-xs font-bold border border-yellow-500/20">★ 4.9</div>
-                                        </div>
 
-                                        {/* Fake Map Grid */}
-                                        <div className="h-32 bg-[#0a0b0f] rounded border border-slate-800 relative overflow-hidden mb-3">
-                                            <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'linear-gradient(#334155 1px, transparent 1px), linear-gradient(90deg, #334155 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
-                                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
-                                                <div className="w-3 h-3 bg-blue-500 rounded-full ring-4 ring-blue-500/20"></div>
-                                                <div className="bg-[#0f1116] text-[10px] text-white px-2 py-1 rounded mt-1 border border-slate-700">4 mins away</div>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => showToast('Calling Technician...')}
+                                                    className="flex-1 py-1.5 rounded bg-[#1c212c] hover:bg-slate-800 border border-slate-700 text-xs text-white transition flex items-center justify-center gap-2"
+                                                >
+                                                    <Phone size={12} /> Call Tech
+                                                </button>
+                                                <button
+                                                    onClick={() => showToast('Opening secure message channel...')}
+                                                    className="flex-1 py-1.5 rounded bg-[#1c212c] hover:bg-slate-800 border border-slate-700 text-xs text-white transition flex items-center justify-center gap-2"
+                                                >
+                                                    <MessageSquare size={12} /> Message
+                                                </button>
                                             </div>
                                         </div>
-
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={() => showToast('Calling Technician...')}
-                                                className="flex-1 py-1.5 rounded bg-[#1c212c] hover:bg-slate-800 border border-slate-700 text-xs text-white transition flex items-center justify-center gap-2"
-                                            >
-                                                <Phone size={12} /> Call Tech
-                                            </button>
-                                            <button
-                                                onClick={() => showToast('Opening secure message channel...')}
-                                                className="flex-1 py-1.5 rounded bg-[#1c212c] hover:bg-slate-800 border border-slate-700 text-xs text-white transition flex items-center justify-center gap-2"
-                                            >
-                                                <MessageSquare size={12} /> Message
-                                            </button>
-                                        </div>
                                     </div>
-                                </div>
+                                )}
 
-                                {/* Event 2 */}
-                                <div className="relative">
-                                    <div className="absolute -left-[21px] top-1 w-3 h-3 rounded-full bg-slate-700 border-2 border-[#0f1116]"></div>
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <h4 className="text-sm font-bold text-slate-300">Manager Approved</h4>
-                                            <p className="text-xs text-slate-500 mt-0.5">Request validated by Property Manager.</p>
-                                        </div>
-                                        <span className="text-xs text-slate-500 font-mono">10:15 AM</span>
-                                    </div>
-                                </div>
 
-                                {/* Event 3 */}
-                                <div className="relative">
-                                    <div className="absolute -left-[21px] top-1 w-3 h-3 rounded-full bg-orange-900/50 border-2 border-[#0f1116]"></div>
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <h4 className="text-sm font-bold text-slate-300">Priority Updated</h4>
-                                            <p className="text-xs text-slate-500 mt-0.5">Changed from Normal to <span className="text-orange-500 font-bold bg-orange-500/10 px-1 rounded">HIGH</span></p>
-                                        </div>
-                                        <span className="text-xs text-slate-500 font-mono">10:05 AM</span>
-                                    </div>
-                                </div>
+
+
 
                             </div>
                         </div>

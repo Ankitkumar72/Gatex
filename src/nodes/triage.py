@@ -29,6 +29,14 @@ class TriageOutput(BaseModel):
         description="A brief, polite acknowledgment of the issue to reassure the tenant (e.g., 'I understand your kitchen sink is leaking.').",
         default=None
     )
+    location: Optional[str] = Field(
+        description="Extract the location or room of the issue if provided (e.g. 'Master Bedroom', 'Kitchen').",
+        default=None
+    )
+    asset_info: Optional[str] = Field(
+        description="Extract the make/model/type of the appliance or asset if provided (e.g. 'Samsung Fridge', 'Sony TV').",
+        default=None
+    )
 
 # 2. System Prompt
 import os
@@ -68,6 +76,8 @@ def triage_node(state: GatexState):
         "classification": response.classification,
         "urgency_score": response.urgency_score,
         "maintenance_category": response.maintenance_category,
+        "location": response.location,
+        "asset_info": response.asset_info,
     }
     
     # If we need clarification, or just want to acknowledge, we can append an AI message.

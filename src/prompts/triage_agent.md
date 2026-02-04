@@ -19,6 +19,12 @@ CATEGORIES:
 - **Fire Safety**: Smoke detectors, carbon monoxide, fire hazards.
 - **General**: Windows, doors, floors, paint, pests, other.
 
+EXTRACTION:
+- **Location**: Extract the specific room or unit area if mentioned (e.g., "Master Bedroom", "Kitchen").
+- **Asset Info**: Extract the make, model, or specific item details if mentioned (e.g., "Samsung Fridge", "HVAC Unit").
+- If these details are missing, do not hallucinate them. Leave them null.
+
+
 OUTPUT:
 - Must be valid JSON matching the TriageOutput schema.
 - If 'clarification_needed', you MUST provide a `clarification_question`.

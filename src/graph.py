@@ -7,6 +7,7 @@ from src.state import GatexState
 from src.nodes.triage import triage_node
 from src.nodes.knowledge import knowledge_node
 from src.nodes.execution import execution_node
+from src.nodes.payment import payment_node
 
 # --- Escalation / Endpoint Nodes ---
 
@@ -110,31 +111,53 @@ def route_knowledge(state: GatexState):
     else:
         return END
 
-# ... imports ...
-from src.nodes.payment import payment_node
-
-# ... existing code ...
-
 def route_execution(state: GatexState):
     strategy = state.get("resolution_strategy")
     if strategy == "human_escalation":
         return "human_escalation"
     return "payment" # Go to payment negotiation
 
-# ... existing code ...
+# --- Graph Construction ---
+
+workflow = StateGraph(GatexState)
 
 # Add Nodes
 workflow.add_node("triage", triage_node)
 workflow.add_node("knowledge", knowledge_node)
 workflow.add_node("execution", execution_node)
-workflow.add_node("payment", payment_node) # New Node
+workflow.add_node("payment", payment_node)
 workflow.add_node("human_escalation", human_escalation_node)
 workflow.add_node("human_approval", human_approval_node)
 workflow.add_node("dispatch", dispatch_node)
 workflow.add_node("send_guide", send_guide_node)
 workflow.add_node("wait_for_tenant", wait_for_tenant_node)
 
-# ... existing code ...
+# Set Entry Point
+workflow.set_entry_point("triage")
+
+# Add Edges
+workflow.add_conditional_edges(
+    "triage",
+    route_triage,
+    {
+        "human_escalation": "human_escalation",
+        "knowledge": "knowledge",
+        "wait_for_tenant": "wait_for_tenant",
+        END: END
+    }
+)
+
+workflow.add_conditional_edges(
+    "knowledge",
+    route_knowledge,
+    {
+        "execution": "execution",
+        "human_escalation": "human_escalation",
+        "send_guide": "send_guide",
+        "wait_for_tenant": "wait_for_tenant",
+        END: END
+    }
+)
 
 workflow.add_conditional_edges(
     "execution",

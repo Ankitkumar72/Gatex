@@ -23,6 +23,8 @@ class GatexState(TypedDict):
     classification: Literal['emergency', 'routine', 'clarification_needed']
     urgency_score: int  # 1-10
     maintenance_category: Optional[str] # e.g., 'plumbing', 'electrical', 'hvac'
+    location: Optional[str] # e.g. "Master Bedroom", "Unit 402"
+    asset_info: Optional[str] # e.g. "Sony TV", "Samsung Fridge"
     
     # Policy & Knowledge
     lease_context: Optional[str]  # Information retrieved from RAG
