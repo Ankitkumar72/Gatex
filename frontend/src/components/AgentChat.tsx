@@ -48,6 +48,20 @@ export default function AgentChat() {
         setIsLoading(false);
     };
 
+    const handlePaymentResponse = async (decision: 'AUTHORIZED' | 'DECLINED') => {
+        const userMsg: Message = { id: Date.now().toString(), role: 'user', content: decision === 'AUTHORIZED' ? 'I authorize this work order.' : 'I decline this work order.' };
+        setMessages(prev => [...prev, userMsg]);
+        setIsLoading(true);
+        const response = await api.chatWithAgent(userMsg.content, 'demo-thread');
+        const agentMsg: Message = {
+            id: (Date.now() + 1).toString(),
+            role: 'agent',
+            content: response.message
+        };
+        setMessages(prev => [...prev, agentMsg]);
+        setIsLoading(false);
+    };
+
     return (
         <div className="flex flex-col h-[500px] bg-[#1c212c] border border-slate-800 rounded-xl overflow-hidden">
             {/* Header */}
@@ -58,20 +72,59 @@ export default function AgentChat() {
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {messages.map((msg) => (
-                    <div key={msg.id} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${msg.role === 'agent' ? 'bg-blue-600' : 'bg-slate-700'}`}>
-                            {msg.role === 'agent' ? <Bot size={16} text-white /> : <User size={16} text-white />}
+                {messages.map((msg) => {
+                    const isPaymentAuth = msg.content.includes('[PAYMENT_AUTH]');
+                    const cleanContent = msg.content.replace(' [PAYMENT_AUTH]', '');
+
+                    return (
+                        <div key={msg.id} className={`flex flex-col gap-2 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                            <div className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${msg.role === 'agent' ? 'bg-blue-600' : 'bg-slate-700'}`}>
+                                    {msg.role === 'agent' ? <Bot size={16} /> : <User size={16} />}
+                                </div>
+                                <div className={`p-3 rounded-lg max-w-[80%] text-sm ${msg.role === 'agent' ? 'bg-slate-800 text-slate-200' : 'bg-blue-600 text-white'}`}>
+                                    {cleanContent}
+                                </div>
+                            </div>
+
+                            {/* Payment Widget */}
+                            {isPaymentAuth && msg.role === 'agent' && (
+                                <div className="ml-11 mt-2 p-4 bg-slate-900 border border-slate-700 rounded-lg max-w-sm">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <div className="p-2 bg-green-500/20 rounded-full">
+                                            <span className="text-green-400 font-bold">$</span>
+                                        </div>
+                                        <div>
+                                            <div className="text-white text-sm font-semibold">Payment Authorization</div>
+                                            <div className="text-slate-400 text-xs">Work First, Pay Later Guarantee</div>
+                                        </div>
+                                    </div>
+                                    <div className="text-slate-300 text-xs mb-4 border-l-2 border-slate-600 pl-3">
+                                        You are approving the estimated cost. You will <b>not be charged</b> until the work is completed and verified.
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => handlePaymentResponse('AUTHORIZED')}
+                                            className="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold py-2 px-3 rounded transition"
+                                        >
+                                            Authorize (Pay Later)
+                                        </button>
+                                        <button
+                                            onClick={() => handlePaymentResponse('DECLINED')}
+                                            className="flex-1 bg-red-900/50 hover:bg-red-900/80 border border-red-800 text-red-200 text-xs font-semibold py-2 px-3 rounded transition"
+                                        >
+                                            Decline
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
-                        <div className={`p-3 rounded-lg max-w-[80%] text-sm ${msg.role === 'agent' ? 'bg-slate-800 text-slate-200' : 'bg-blue-600 text-white'}`}>
-                            {msg.content}
-                        </div>
-                    </div>
-                ))}
+                    );
+                })}
                 {isLoading && (
                     <div className="flex gap-3">
                         <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center shrink-0">
-                            <Bot size={16} text-white />
+                            <Bot size={16} />
                         </div>
                         <div className="bg-slate-800 p-3 rounded-lg flex items-center">
                             <Loader2 size={16} className="animate-spin text-slate-400" />

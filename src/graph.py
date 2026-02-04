@@ -110,68 +110,44 @@ def route_knowledge(state: GatexState):
     else:
         return END
 
+# ... imports ...
+from src.nodes.payment import payment_node
+
+# ... existing code ...
+
 def route_execution(state: GatexState):
     strategy = state.get("resolution_strategy")
     if strategy == "human_escalation":
         return "human_escalation"
-    return "human_approval" # Go to waiting room
+    return "payment" # Go to payment negotiation
 
-# --- Graph Construction ---
-
-workflow = StateGraph(GatexState)
+# ... existing code ...
 
 # Add Nodes
 workflow.add_node("triage", triage_node)
 workflow.add_node("knowledge", knowledge_node)
 workflow.add_node("execution", execution_node)
+workflow.add_node("payment", payment_node) # New Node
 workflow.add_node("human_escalation", human_escalation_node)
 workflow.add_node("human_approval", human_approval_node)
 workflow.add_node("dispatch", dispatch_node)
 workflow.add_node("send_guide", send_guide_node)
 workflow.add_node("wait_for_tenant", wait_for_tenant_node)
 
-# Set Entry Point
-workflow.set_entry_point("triage")
-
-# Add Edges
-workflow.add_conditional_edges(
-    "triage",
-    route_triage,
-    {
-        "human_escalation": "human_escalation",
-        "knowledge": "knowledge",
-        "wait_for_tenant": "wait_for_tenant",
-        END: END
-    }
-)
-
-workflow.add_conditional_edges(
-    "knowledge",
-    route_knowledge,
-    {
-        "execution": "execution",
-        "human_escalation": "human_escalation",
-        "send_guide": "send_guide",
-        "wait_for_tenant": "wait_for_tenant",
-        END: END
-    }
-)
+# ... existing code ...
 
 workflow.add_conditional_edges(
     "execution",
     route_execution,
     {
         "human_escalation": "human_escalation",
-        "human_approval": "human_approval"
+        "payment": "payment"
     }
 )
 
-# Human-in-the-Loop Logic
+workflow.add_edge("payment", "wait_for_tenant")
 workflow.add_edge("human_approval", "dispatch")
-workflow.add_edge("dispatch", END)
-workflow.add_edge("human_escalation", END)
-workflow.add_edge("send_guide", END)
-workflow.add_edge("wait_for_tenant", END) # In reality this would END the turn, user replies, we resume.
+# ...
 
 # Compile
 import os
