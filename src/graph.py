@@ -14,7 +14,18 @@ def human_escalation_node(state: GatexState):
     """
     Node for handling emergencies or fallback cases.
     """
-    msg = AIMessage(content="ESCALATION TRIGGERED: Alerting Property Manager via SMS immediately.")
+    from src.llm_factory import get_llm
+    from langchain_core.messages import SystemMessage
+    
+    llm = get_llm(temperature=0)
+    urgency = state.get("urgency_score", 10)
+    category = state.get("maintenance_category", "General")
+    
+    prompt = f"You are an Urgent Alert System. Generate a concise SMS alert for a Property Manager regarding a {category} emergency (Urgency: {urgency}/10). Start with 'ESCALATION TRIGGERED:'."
+    
+    response = llm.invoke([SystemMessage(content=prompt)] + state['messages'])
+    
+    msg = AIMessage(content=response.content)
     return {
         "messages": [msg],
         "resolution_strategy": "human_escalation"
@@ -56,7 +67,18 @@ def send_guide_node(state: GatexState):
     """
     Handles DIY cases by sending a guide.
     """
-    msg = AIMessage(content="[DIY Guide] This is a tenant responsibility. Please refer to the drafted guide: https://example.com/diy-guide")
+    from src.llm_factory import get_llm
+    from langchain_core.messages import SystemMessage
+    
+    llm = get_llm(temperature=0)
+    
+    # We could retrieve a specific guide from a vector store here, 
+    # but for now we generate a polite response pointing to the portal.
+    prompt = "You are a helpful Property Assistant. The tenant has a minor issue that is their responsibility. Politely explain this and provide this link for a guide: https://example.com/diy-guide. Be empathetic."
+    
+    response = llm.invoke([SystemMessage(content=prompt)] + state['messages'])
+    
+    msg = AIMessage(content=response.content)
     return {
         "messages": [msg],
         "resolution_strategy": "resolved"
