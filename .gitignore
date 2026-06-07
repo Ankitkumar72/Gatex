@@ -27,3 +27,6 @@ propflow.db*
 # Node
 node_modules/
 npm-debug.log
+
+#misc
+.obsidian
